@@ -85,7 +85,7 @@ export default class CircuitASTGenerator {
   }
 
   /**
-   * Extracts the circuit name from the file path.
+   * Extracts the circuit name from the file path. Used to identify the circuit in the AST.
    *
    * @param {string} filePath - The full path to the circuit file.
    * @returns {string} The extracted name of the circuit.
