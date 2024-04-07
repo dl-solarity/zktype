@@ -6,7 +6,7 @@ import { expect, test, describe } from "bun:test";
 import CircuitASTGenerator from "../src/CircuitASTGenerator";
 
 describe("Circuit AST Generation", function () {
-  const compiler = new CircuitASTGenerator();
+  const compiler = new CircuitASTGenerator("test");
 
   test("it should compile the basic circuit", async function () {
     const pathToCircuit = require.resolve("./fixture/credentialAtomicQueryMTPOnChainVoting.circom");

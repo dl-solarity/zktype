@@ -10,6 +10,7 @@ const { CircomRunner, bindings } = require('@distributedlab/circom2')
  *
  * It is designed to work independently of any filtering logic, acting solely as a conduit to the compiler.
  * @todo Consider using a class for filtering which circuits to compile.
+ * @todo Add ability to provide options for the Circom compiler (in case if there are plans to extend functionality of ast generation).
  */
 export default class CircuitASTGenerator {
   /**
@@ -21,7 +22,9 @@ export default class CircuitASTGenerator {
 
   public projectRoot: string;
 
-  constructor() {
+  private readonly _wasmBytes: Buffer;
+
+  constructor(private defaultDir: string) {
     this.projectRoot = findProjectRoot(__dirname);
 
     const tempDirPath = path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR);
@@ -29,16 +32,20 @@ export default class CircuitASTGenerator {
     if (!fs.existsSync(tempDirPath)) {
       fs.mkdirSync(tempDirPath, { recursive: true });
     }
+
+    this._wasmBytes = fs.readFileSync(require.resolve('@distributedlab/circom2/circom.wasm'));
   }
 
   /**
    * Asynchronously generates the Abstract Syntax Tree (AST) for a specified circuit file.
    * This method sets up the necessary arguments and environment for invoking the CircomRunner.
    *
+   * In case if the file can not be compiled, the method will log the error and return false.
+   *
    * @param {string} filePath - The path to the circuit file to be compiled into an AST.
-   * @returns {Promise<void>} A promise that resolves once the AST generation process has completed.
+   * @returns {Promise<boolean>} A promise that resolves to true if the AST was generated successfully, otherwise false.
    */
-  public async generateCircuitAST(filePath: string): Promise<void> {
+  public async generateCircuitAST(filePath: string): Promise<boolean> {
     if (!fs.existsSync(filePath)) {
       throw new Error(`The specified circuit file does not exist: ${filePath}`);
     }
@@ -52,17 +59,35 @@ export default class CircuitASTGenerator {
 
     const args = ['--dry_run', '--save_ast', emptyJsonFile, '--', filePath]
 
-    const circom = new CircomRunner({
-      args,
-      preopens: {"/":"/"},
-      bindings: {
-        ...bindings,
-        fs,
-      },
-    })
+    try {
+      const circom = new CircomRunner({
+        args,
+        preopens: { "/": "/" },
+        bindings: {
+          ...bindings,
+          exit(_code: number) {
+            fs.unlinkSync(path.resolve(emptyJsonFile));
+          },
+          fs,
+        },
+      })
 
-    const wasm_bytes = fs.readFileSync(require.resolve('@distributedlab/circom2/circom.wasm'))
-    await circom.execute(wasm_bytes)
+      await circom.execute(this._wasmBytes)
+
+      return true;
+    } catch (error) {
+      console.error(`Error generating AST for circuit: ${circuitName}. Reason: \n${error}`);
+
+      return false;
+    }
+  }
+
+  /**
+   * Cleans up all previously generated circuit ASTs.
+   * @public
+   */
+  public cleanupCircuitASTs(): void {
+    fs.rmSync(path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR), { recursive: true, force: true });
   }
 
   /**
@@ -118,11 +143,9 @@ export default class CircuitASTGenerator {
    * @private
    */
   private _extractSourcePath(filePath: string): string {
-    const relativePath = path.relative(this.projectRoot, filePath);
+    const pathParts = path.resolve(this.projectRoot, filePath).replace(path.resolve(this.defaultDir), "").split(path.sep);
 
-    const pathParts = relativePath.split(path.sep);
-
-    // Skip the top-level directory
+    // Skip the `/` symbol
     pathParts.shift();
 
     return path.dirname(pathParts.join(path.sep));
