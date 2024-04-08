@@ -65,8 +65,10 @@ export default class CircuitASTGenerator {
         preopens: { "/": "/" },
         bindings: {
           ...bindings,
-          exit(_code: number) {
-            fs.unlinkSync(path.resolve(emptyJsonFile));
+          exit(code: number) {
+            if (code !== 0) {
+              fs.unlinkSync(path.resolve(emptyJsonFile));
+            }
           },
           fs,
         },
