@@ -2,9 +2,14 @@
 
 export type SignalType = "Output" | "Input" | "Intermediate";
 
+export interface CircuitAST {
+  sourcePath: string;
+  circomCompilerOutput: CircomCompilerOutput[];
+}
+
 // Compiler and Definitions
 
-export interface CompilerConfig {
+export interface CircomCompilerOutput {
   meta: Meta;
   compiler_version: number[];
   custom_gates: boolean;
@@ -17,9 +22,11 @@ export interface CompilerConfig {
 export type MainComponent = [string[], Call];
 
 export interface Call {
-  meta: Meta;
-  id: string;
-  args: any[];
+  Call: {
+    meta: Meta;
+    id: string;
+    args: any[];
+  };
 }
 
 export type Definition = {

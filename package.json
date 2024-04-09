@@ -14,7 +14,7 @@
     "prepare": "husky",
     "build": "bunx tsc",
     "test": "bun test",
-    "lint-fix": "prettier --write src/**/*.ts && prettier --write test/**/*.ts"
+    "lint-fix": "prettier --write **/*.ts"
   },
   "repository": {
     "type": "git",

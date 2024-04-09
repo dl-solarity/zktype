@@ -7,6 +7,7 @@ import { findProjectRoot } from "../src/utils";
 
 import CircuitProcessor from "../src/CircuitProcessor";
 import CircuitASTGenerator from "../src/CircuitASTGenerator";
+
 import { defaultCircuitProcessorConfig } from "../src/config";
 
 describe("Circuit Processor", function () {

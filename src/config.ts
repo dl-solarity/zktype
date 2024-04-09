@@ -7,3 +7,7 @@ export const defaultCircuitProcessorConfig: CircuitProcessorConfig = {
   strict: false,
   clean: true,
 };
+
+export const defaultCircuitArtifactGeneratorConfig = {
+  clean: true,
+};

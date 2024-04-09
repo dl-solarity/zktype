@@ -41,3 +41,12 @@ export interface CircuitProcessorConfig {
    */
   clean: boolean;
 }
+
+export interface CircuitArtifactGeneratorConfig {
+  /**
+   * A flag indicating whether the artifacts should be cleaned up before generating new ones.
+   * If set to `true`, the generator will delete all previously generated artifacts before generating new ones.
+   * If set to `false`, the generator will keep the previously generated artifacts.
+   */
+  clean: boolean;
+}

@@ -1,10 +1,9 @@
 import fs from "fs";
+import path from "path";
 
-import { defaultCircuitProcessorConfig } from "./config";
+import CircuitASTGenerator from "./CircuitASTGenerator";
 
 import { CircuitProcessorConfig } from "./types/config";
-import path from "path";
-import CircuitASTGenerator from "./CircuitASTGenerator";
 
 /**
  * `CircuitProcessor` is responsible for processing circuits by generating their Abstract Syntax Trees (ASTs) using the `CircuitASTGenerator`.
@@ -29,7 +28,7 @@ export default class CircuitProcessor {
    * @param {CircuitProcessorConfig} [circuitProcessorConfig=defaultCircuitProcessorConfig] - The configuration object for
    * the circuit processor, including definitions for the default folder, and patterns for files to include or skip.
    */
-  constructor(circuitProcessorConfig: CircuitProcessorConfig = defaultCircuitProcessorConfig) {
+  constructor(circuitProcessorConfig: CircuitProcessorConfig) {
     this._circuitProcessorConfig = circuitProcessorConfig;
 
     this._onlyFilterGlobs = this._circuitProcessorConfig.only.map((file) => new RegExp(file));
@@ -59,12 +58,23 @@ export default class CircuitProcessor {
     const circuitFiles = this._fetchCircuitFiles();
 
     for (const circuitFile of circuitFiles) {
-      const isSuccess = await this._circuitASTGenerator.generateCircuitAST(path.resolve(this._circuitProcessorConfig.defaultFolder, circuitFile));
+      const isSuccess = await this._circuitASTGenerator.generateCircuitAST(
+        path.resolve(this._circuitProcessorConfig.defaultFolder, circuitFile),
+      );
 
       if (!isSuccess && this._circuitProcessorConfig.strict) {
         throw new Error(`An error occurred while processing the circuit: ${circuitFile}`);
       }
     }
+  }
+
+  /**
+   * Retrieves the default folder path specified in the configuration.
+   *
+   * @returns {string} The path to the default folder.
+   */
+  public getDefaultFolder(): string {
+    return this._circuitProcessorConfig.defaultFolder;
   }
 
   /**
@@ -105,7 +115,10 @@ export default class CircuitProcessor {
     for (const file of files) {
       const stringRepresentation = file.toString();
 
-      if (!path.extname(stringRepresentation) || !this.supportedFileExtensions.includes(path.extname(stringRepresentation))) {
+      if (
+        !path.extname(stringRepresentation) ||
+        !this.supportedFileExtensions.includes(path.extname(stringRepresentation))
+      ) {
         continue;
       }
 
@@ -176,31 +189,3 @@ export default class CircuitProcessor {
     return regex.test(fileContent);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
