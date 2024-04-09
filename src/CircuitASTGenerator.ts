@@ -12,7 +12,7 @@ import { CircuitAST } from "./types/ast";
  * Its primary function is to generate the Abstract Syntax Tree (AST) for a given circuit file.
  *
  * It is designed to work independently of any filtering logic, acting solely as a conduit to the compiler.
- * @todo Consider using a class for filtering which circuits to compile.
+ * @todo Consider using a class for filtering which circuits to compile for caching purposes.
  * @todo Add ability to provide options for the Circom compiler (in case if there are plans to extend functionality of ast generation).
  */
 export default class CircuitASTGenerator {

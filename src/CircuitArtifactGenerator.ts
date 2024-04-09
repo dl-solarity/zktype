@@ -22,6 +22,7 @@ import { CircuitArtifactGeneratorConfig, CircuitProcessorConfig } from "./types/
  *
  * This class mainly parses and validates the generated AST JSONs. Validation is needed to ensure that the generated AST files meet expectations and necessary
  * fields exist.
+ * @todo Consider using a class for filtering which circuits to compile for caching purposes.
  */
 export default class CircuitArtifactGenerator {
   /**
