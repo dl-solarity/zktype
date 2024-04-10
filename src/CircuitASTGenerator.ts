@@ -18,12 +18,10 @@ import { CircuitAST } from "./types/ast";
 export default class CircuitASTGenerator {
   /**
    * Directory to store all generated files during the AST generation process.
-   * @public
-   * @static
    */
-  public static TEMP_DIR = "cache/circuits-ast/";
+  public static readonly TEMP_DIR = "cache/circuits-ast/";
 
-  public projectRoot: string;
+  public readonly projectRoot: string;
 
   private readonly _wasmBytes: Buffer;
 
@@ -96,7 +94,6 @@ export default class CircuitASTGenerator {
 
   /**
    * Cleans up all previously generated circuit ASTs.
-   * @public
    */
   public cleanupCircuitASTs(): void {
     fs.rmSync(path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR), { recursive: true, force: true });
@@ -109,7 +106,6 @@ export default class CircuitASTGenerator {
    * @param {string} sourcePath - The source path to the circuit file.
    * @param {string} filename - The base name for the JSON file to be created.
    * @returns {string} The full path to the newly created JSON file.
-   * @private
    */
   private _createEmptyJsonFile(sourcePath: string, filename: string): string {
     const jsonFilename = filename.endsWith(".json") ? filename : `${filename}.json`;
@@ -126,7 +122,6 @@ export default class CircuitASTGenerator {
    *
    * @param {string} filePath - The full path to the circuit file.
    * @returns {string} The extracted name of the circuit.
-   * @private
    */
   private _extractCircuitName(filePath: string): string {
     const baseName = path.basename(filePath);
@@ -152,7 +147,6 @@ export default class CircuitASTGenerator {
    *
    * @param {string} filePath - The full path to the circuit file.
    * @returns {string} The extracted source path.
-   * @private
    */
   private _extractSourcePath(filePath: string): string {
     const pathParts = path
@@ -170,7 +164,6 @@ export default class CircuitASTGenerator {
    * Creates a sequence of directories based on the provided source path.
    *
    * @param {string} sourcePath - The source path of the circuit file.
-   * @private
    */
   private _createCircuitASTDirectory(sourcePath: string): void {
     const fullPath = path.join(CircuitASTGenerator.TEMP_DIR, sourcePath);

@@ -1,0 +1,23 @@
+{
+  "_format": "zktype-circom-artifact-1",
+  "circuitName": "Multiplier2",
+  "sourceName": "test/fixture/Basic.circom",
+  "compilerVersion": "2.1.8",
+  "signals": [
+    {
+      "type": "Input",
+      "internalType": "bigint",
+      "name": "in1"
+    },
+    {
+      "type": "Input",
+      "internalType": "bigint",
+      "name": "in2"
+    },
+    {
+      "type": "Output",
+      "internalType": "string",
+      "name": "out"
+    }
+  ]
+}

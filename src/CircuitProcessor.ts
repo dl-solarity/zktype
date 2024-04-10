@@ -14,12 +14,12 @@ import { CircuitProcessorConfig } from "./types/config";
 export default class CircuitProcessor {
   public readonly supportedFileExtensions = [".circom"];
 
-  private _circuitProcessorConfig: CircuitProcessorConfig;
+  private readonly _circuitProcessorConfig: CircuitProcessorConfig;
 
   private readonly _onlyFilterGlobs: RegExp[];
   private readonly _skipFilterGlobs: RegExp[];
 
-  private _circuitASTGenerator: CircuitASTGenerator;
+  private readonly _circuitASTGenerator: CircuitASTGenerator;
 
   /**
    * Initializes a new instance of the CircuitProcessor class with optional custom configuration.

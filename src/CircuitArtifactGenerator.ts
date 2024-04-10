@@ -28,17 +28,17 @@ export default class CircuitArtifactGenerator {
   /**
    * The directory where the generated artifacts will be stored.
    */
-  public static ARTIFACTS_DIR: string = "artifacts/circuits";
+  public static readonly ARTIFACTS_DIR: string = "artifacts/circuits";
 
   /**
    *  The current format version of the circuit artifact.
    */
-  public static CURRENT_FORMAT: string = "zktype-circom-artifact-1";
+  public static readonly CURRENT_FORMAT: string = "zktype-circom-artifact-1";
 
   private readonly _projectRoot: string;
   private readonly _circuitArtifactGeneratorConfig: CircuitArtifactGeneratorConfig;
 
-  private _circuitPreprocessor: CircuitProcessor;
+  private readonly _circuitPreprocessor: CircuitProcessor;
 
   /**
    * Creates an instance of CircuitArtifactGenerator.
