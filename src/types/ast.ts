@@ -2,6 +2,8 @@
 
 export type SignalType = "Output" | "Input" | "Intermediate";
 
+export type SignalVisibility = "public" | "private";
+
 export interface CircuitAST {
   sourcePath: string;
   circomCompilerOutput: CircomCompilerOutput[];

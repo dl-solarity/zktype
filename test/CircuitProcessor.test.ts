@@ -5,8 +5,8 @@ import { expect, test, describe } from "bun:test";
 
 import { findProjectRoot } from "../src/utils";
 
-import CircuitProcessor from "../src/CircuitProcessor";
-import CircuitASTGenerator from "../src/CircuitASTGenerator";
+import CircuitProcessor from "../src/core/CircuitProcessor";
+import CircuitASTGenerator from "../src/core/CircuitASTGenerator";
 
 import { defaultCircuitProcessorConfig } from "../src/config";
 

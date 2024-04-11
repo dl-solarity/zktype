@@ -3,8 +3,8 @@ import path from "path";
 
 import { expect, test, describe, afterEach } from "bun:test";
 
-import CircuitASTGenerator from "../src/CircuitASTGenerator";
-import CircuitArtifactGenerator from "../src/CircuitArtifactGenerator";
+import CircuitASTGenerator from "../src/core/CircuitASTGenerator";
+import CircuitArtifactGenerator from "../src/core/CircuitArtifactGenerator";
 
 import { findProjectRoot } from "../src/utils";
 import { defaultCircuitArtifactGeneratorConfig, defaultCircuitProcessorConfig } from "../src/config";

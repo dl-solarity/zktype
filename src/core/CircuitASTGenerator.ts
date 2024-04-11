@@ -3,9 +3,9 @@ import path from "path";
 
 const { CircomRunner, bindings } = require("@distributedlab/circom2");
 
-import { findProjectRoot } from "./utils";
+import { findProjectRoot } from "../utils";
 
-import { CircuitAST } from "./types/ast";
+import { CircuitAST } from "../types";
 
 /**
  * `CircuitASTGenerator` serves as an interface to the Circom compiler for the first step in the circuit types generation process.
@@ -26,7 +26,7 @@ export default class CircuitASTGenerator {
   private readonly _wasmBytes: Buffer;
 
   constructor(private defaultDir: string) {
-    this.projectRoot = findProjectRoot(__dirname);
+    this.projectRoot = findProjectRoot(process.cwd());
 
     const tempDirPath = path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR);
 
@@ -56,9 +56,9 @@ export default class CircuitASTGenerator {
 
     this._createCircuitASTDirectory(sourcePath);
 
-    const emptyJsonFile = this._createEmptyJsonFile(sourcePath, circuitName);
+    const astFilePath = this._getFutureASTFilePath(sourcePath, circuitName);
 
-    const args = ["--dry_run", "--save_ast", emptyJsonFile, "--", filePath];
+    const args = ["--dry_run", "--save_ast", astFilePath, "--", filePath];
 
     try {
       const circom = new CircomRunner({
@@ -66,11 +66,6 @@ export default class CircuitASTGenerator {
         preopens: { "/": "/" },
         bindings: {
           ...bindings,
-          exit(code: number) {
-            if (code !== 0) {
-              fs.unlinkSync(path.resolve(emptyJsonFile));
-            }
-          },
           fs,
         },
       });
@@ -79,10 +74,10 @@ export default class CircuitASTGenerator {
 
       const circuitAST: CircuitAST = {
         sourcePath: path.relative(this.projectRoot, filePath),
-        circomCompilerOutput: JSON.parse(fs.readFileSync(emptyJsonFile, "utf-8")),
+        circomCompilerOutput: JSON.parse(fs.readFileSync(astFilePath, "utf-8")),
       };
 
-      fs.writeFileSync(emptyJsonFile, JSON.stringify(circuitAST));
+      fs.writeFileSync(astFilePath, JSON.stringify(circuitAST));
 
       return true;
     } catch (error) {
@@ -100,19 +95,17 @@ export default class CircuitASTGenerator {
   }
 
   /**
-   * Creates an empty JSON file with a specified filename. If the filename does not have a '.json' extension,
+   * Returns JSON file path with a specified filename. If the filename does not have a '.json' extension,
    * it is appended.
    *
    * @param {string} sourcePath - The source path to the circuit file.
-   * @param {string} filename - The base name for the JSON file to be created.
-   * @returns {string} The full path to the newly created JSON file.
+   * @param {string} filename - The base name for the JSON file.
+   * @returns {string} The full path to the possibly created JSON file.
    */
-  private _createEmptyJsonFile(sourcePath: string, filename: string): string {
+  private _getFutureASTFilePath(sourcePath: string, filename: string): string {
     const jsonFilename = filename.endsWith(".json") ? filename : `${filename}.json`;
 
     const filePath = path.join(CircuitASTGenerator.TEMP_DIR, sourcePath, jsonFilename);
-
-    fs.writeFileSync(filePath, JSON.stringify({}));
 
     return path.resolve(filePath);
   }

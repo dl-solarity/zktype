@@ -3,7 +3,8 @@ import path from "path";
 
 import CircuitASTGenerator from "./CircuitASTGenerator";
 
-import { CircuitProcessorConfig } from "./types/config";
+import { findProjectRoot } from "../utils";
+import { CircuitProcessorConfig } from "../types";
 
 /**
  * `CircuitProcessor` is responsible for processing circuits by generating their Abstract Syntax Trees (ASTs) using the `CircuitASTGenerator`.
@@ -20,6 +21,8 @@ export default class CircuitProcessor {
   private readonly _skipFilterGlobs: RegExp[];
 
   private readonly _circuitASTGenerator: CircuitASTGenerator;
+
+  private readonly _projectRoot: string = findProjectRoot(process.cwd());
 
   /**
    * Initializes a new instance of the CircuitProcessor class with optional custom configuration.
@@ -69,12 +72,12 @@ export default class CircuitProcessor {
   }
 
   /**
-   * Retrieves the default folder path specified in the configuration.
+   * Retrieves the relative to the project root default folder path specified in the configuration.
    *
    * @returns {string} The path to the default folder.
    */
   public getDefaultFolder(): string {
-    return this._circuitProcessorConfig.defaultFolder;
+    return path.relative(this._projectRoot, this._circuitProcessorConfig.defaultFolder);
   }
 
   /**

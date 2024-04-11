@@ -3,7 +3,7 @@ import path from "path";
 
 import { expect, test, describe } from "bun:test";
 
-import CircuitASTGenerator from "../src/CircuitASTGenerator";
+import CircuitASTGenerator from "../src/core/CircuitASTGenerator";
 
 describe("Circuit AST Generation", function () {
   const compiler = new CircuitASTGenerator("test");
