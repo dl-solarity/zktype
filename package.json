@@ -1,12 +1,18 @@
 {
   "name": "zktype",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "bin": "dist/bin/zktype.js",
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
     "dist/src/",
+    "dist/bin/",
     "src/",
+    "bin/",
     "LICENSE",
     "README.md"
   ],
@@ -33,6 +39,8 @@
   "homepage": "https://github.com/dl-solarity/zktype#readme",
   "dependencies": {
     "@distributedlab/circom2": "^0.2.18-rc.0",
+    "commander": "^12.0.0",
+    "please-upgrade-node": "^3.2.0",
     "typescript": "^5.4.2"
   },
   "devDependencies": {
