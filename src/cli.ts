@@ -12,7 +12,7 @@ export async function runCLI() {
 
   program.addOption(
     new Option(
-      "-c, --config <path>",
+      "-p, --path <path>",
       "The path to the directory within the project root where the processor will search for circuits.",
     ).default("circuits"),
   );
