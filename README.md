@@ -28,12 +28,6 @@ to look for circuits, you can use the following command:
 npx zktype --path ./src 
 ```
 
-or simply:
-
-```bash
-npx zktype -p ./src 
-```
-
 To learn more about available commands, run:
 
 ```bash 
