@@ -2,8 +2,7 @@
 
 # ZKType 
 
-ZKType is a package that provides a quick and easy way to generate TypeScript bindings for simplifying interaction with 
-the SnarkJS library.
+ZKType - unleash TypeScript bindings for Circom circuits.
 
 ## Installation
 

@@ -39,7 +39,7 @@ export default class CircuitArtifactGenerator {
   public static readonly ARTIFACTS_DIR: string = "artifacts/circuits";
 
   /**
-   *  The current format version of the circuit artifact.
+   * The current format version of the circuit artifact.
    */
   public static readonly CURRENT_FORMAT: string = "zktype-circom-artifact-1";
 

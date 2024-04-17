@@ -24,7 +24,7 @@ describe("Circuit AST Generation", function () {
     ).toBe(true);
   });
 
-  test("it should revert if trying yo compile a non-existing circuit", async () => {
+  test("it should revert if trying to compile a non-existing circuit", async () => {
     expect(compiler.generateCircuitAST("fixture/Basic.circom")).rejects.toThrow(
       "The specified circuit file does not exist: fixture/Basic.circom",
     );
