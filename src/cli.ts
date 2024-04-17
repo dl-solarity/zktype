@@ -2,8 +2,8 @@ import { Command, Option } from "commander";
 
 import { getPackageVersion } from "./utils";
 
-import CircuitTypesGenerator from "./core/CircuitTypesGenerator";
 import CircuitArtifactGenerator from "./core/CircuitArtifactGenerator";
+import CircuitTypesGenerator from "./core/codegen/CircuitTypesGenerator";
 
 export async function runCLI() {
   const program = new Command();
@@ -36,15 +36,15 @@ export async function runCLI() {
   );
   program.addOption(
     new Option(
-      "--no-ast-clean",
+      "--clean-ast-files",
       "A flag indicating whether the processor should clean up the previously generated circuit ASTs before processing the circuits.",
-    ).default(true),
+    ).default(false),
   );
   program.addOption(
     new Option(
-      "--no-artifacts-clean",
-      "A flag indicating whether the errors should immediately stop the processing of circuits or not.",
-    ).default(true),
+      "--clean-artifacts",
+      "A flag indicating whether the artifacts should be cleaned up before generating new ones.",
+    ).default(false),
   );
 
   program.parse(process.argv);
