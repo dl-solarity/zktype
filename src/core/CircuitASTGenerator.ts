@@ -25,7 +25,10 @@ export default class CircuitASTGenerator {
 
   private readonly _wasmBytes: Buffer;
 
-  constructor(private defaultDir: string) {
+  constructor(
+    private defaultDir: string,
+    private quiet: boolean = false,
+  ) {
     this.projectRoot = findProjectRoot(process.cwd());
 
     const tempDirPath = path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR);
@@ -72,11 +75,7 @@ export default class CircuitASTGenerator {
 
       return true;
     } catch (error) {
-      console.error(`Error generating AST for circuit: ${circuitName}. Reason: \n`);
-
-      try {
-        await this._getCircomRunner(args).execute(this._wasmBytes);
-      } catch {}
+      await this._displayCircuitGenerationError(circuitName, args);
 
       return false;
     }
@@ -159,6 +158,22 @@ export default class CircuitASTGenerator {
     fs.mkdirSync(fullPath, { recursive: true });
   }
 
+  /**
+   * Displays the error message when the circuit generation fails.
+   */
+  private async _displayCircuitGenerationError(circuitName: string, args: string[]): Promise<void> {
+    if (!this.quiet) {
+      console.error(`Error generating AST for circuit: ${circuitName}. Reason: \n`);
+
+      try {
+        await this._getCircomRunner(args).execute(this._wasmBytes);
+      } catch {}
+    }
+  }
+
+  /**
+   * Returns an instance of the CircomRunner with the specified arguments.
+   */
   private _getCircomRunner(args: string[], quiet: boolean = false): any {
     return new CircomRunner({
       args,

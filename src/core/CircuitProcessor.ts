@@ -37,7 +37,10 @@ export default class CircuitProcessor {
     this._onlyFilterGlobs = this._circuitProcessorConfig.only.map((file) => new RegExp(file));
     this._skipFilterGlobs = this._circuitProcessorConfig.skip.map((file) => new RegExp(file));
 
-    this._circuitASTGenerator = new CircuitASTGenerator(this._circuitProcessorConfig.defaultFolder);
+    this._circuitASTGenerator = new CircuitASTGenerator(
+      this._circuitProcessorConfig.defaultFolder,
+      this._circuitProcessorConfig.quiet,
+    );
   }
 
   /**

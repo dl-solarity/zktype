@@ -40,6 +40,11 @@ export interface CircuitProcessorConfig {
    * If set to `false`, the processor will keep the previously generated circuit ASTs.
    */
   clean: boolean;
+
+  /**
+   * A flag indicating whether the CircomASTGenerator should suppress circom errors or not.
+   */
+  quiet: boolean;
 }
 
 export interface CircuitArtifactGeneratorConfig {

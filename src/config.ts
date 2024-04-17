@@ -1,4 +1,4 @@
-import { CircuitProcessorConfig } from "./types/config";
+import { CircuitProcessorConfig } from "./types";
 
 export const defaultCircuitProcessorConfig: CircuitProcessorConfig = {
   defaultFolder: "circuits",
@@ -6,6 +6,7 @@ export const defaultCircuitProcessorConfig: CircuitProcessorConfig = {
   only: [],
   strict: false,
   clean: true,
+  quiet: false,
 };
 
 export const defaultCircuitArtifactGeneratorConfig = {

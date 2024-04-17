@@ -46,6 +46,12 @@ export async function runCLI() {
       "A flag indicating whether the artifacts should be cleaned up before generating new ones.",
     ).default(false),
   );
+  program.addOption(
+    new Option(
+      "--quiet",
+      "A flag indicating whether the CircomASTGenerator should suppress circom errors or not.",
+    ).default(false),
+  );
 
   program.parse(process.argv);
 
@@ -61,6 +67,7 @@ export async function runCLI() {
       only: options.only,
       strict: options.strictAstGeneration,
       clean: options.astClean,
+      quiet: options.quiet,
     },
   );
 
