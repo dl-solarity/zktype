@@ -31,7 +31,7 @@ describe("Circuit Processor", function () {
   }
 
   test("it should process folder with circuits", async () => {
-    const processor = new CircuitProcessor({ ...defaultCircuitProcessorConfig, defaultFolder: "test/fixture" });
+    const processor = new CircuitProcessor({ ...defaultCircuitProcessorConfig, defaultFolder: "test/fixture", clean: true });
 
     await processor.processCircuits();
 

@@ -9,6 +9,8 @@ describe("Circuit AST Generation", function () {
   const compiler = new CircuitASTGenerator("test");
 
   test("it should compile the basic circuit", async function () {
+    compiler.cleanupCircuitASTs();
+
     const pathToCircuit = require.resolve("./fixture/credentialAtomicQueryMTPOnChainVoting.circom");
 
     await compiler.generateCircuitAST(pathToCircuit);

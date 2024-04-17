@@ -61,16 +61,7 @@ export default class CircuitASTGenerator {
     const args = ["--dry_run", "--save_ast", astFilePath, "--", filePath];
 
     try {
-      const circom = new CircomRunner({
-        args,
-        preopens: { "/": "/" },
-        bindings: {
-          ...bindings,
-          fs,
-        },
-      });
-
-      await circom.execute(this._wasmBytes);
+      await this._getCircomRunner(args, true).execute(this._wasmBytes);
 
       const circuitAST: CircuitAST = {
         sourcePath: path.relative(this.projectRoot, filePath),
@@ -81,7 +72,11 @@ export default class CircuitASTGenerator {
 
       return true;
     } catch (error) {
-      console.error(`Error generating AST for circuit: ${circuitName}. Reason: \n${error}`);
+      console.error(`Error generating AST for circuit: ${circuitName}. Reason: \n`);
+
+      try {
+        await this._getCircomRunner(args).execute(this._wasmBytes);
+      } catch {}
 
       return false;
     }
@@ -162,5 +157,18 @@ export default class CircuitASTGenerator {
     const fullPath = path.join(CircuitASTGenerator.TEMP_DIR, sourcePath);
 
     fs.mkdirSync(fullPath, { recursive: true });
+  }
+
+  private _getCircomRunner(args: string[], quiet: boolean = false): any {
+    return new CircomRunner({
+      args,
+      preopens: { "/": "/" },
+      bindings: {
+        ...bindings,
+        exit(_code: number) {},
+        fs,
+      },
+      quiet,
+    });
   }
 }
