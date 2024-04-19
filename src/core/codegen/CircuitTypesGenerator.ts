@@ -6,7 +6,10 @@ import BaseTSGenerator from "./BaseTSGenerator";
 
 import CircuitArtifactGenerator from "../CircuitArtifactGenerator";
 
-import { CircuitArtifact, Signal } from "../../types";
+import { normalizeName } from "../../utils";
+
+import { CircuitArtifact, Signal, ArtifactWithPath } from "../../types";
+
 import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../../constants";
 
 /**
@@ -36,55 +39,232 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
 
     fs.mkdirSync(CircuitTypesGenerator.TYPES_DIR, { recursive: true });
 
-    let resultedSourceFileContent = "";
-    let nodesMap: Map<string, boolean> = new Map();
+    const isNameExist: Map<string, boolean> = new Map();
+    const typePathsToResolve: ArtifactWithPath[] = [];
 
     for (let i = 0; i < circuitArtifacts.length; i++) {
-      const preparedNode = this._returnTSDefinitionByArtifact(circuitArtifacts[i]);
+      const circuitName = circuitArtifacts[i].circuitName;
 
-      if (nodesMap.has(preparedNode)) {
-        continue;
+      const isNameAlreadyExist = isNameExist.has(circuitName);
+      isNameExist.set(circuitName, true);
+
+      let circuitTypePath = path
+        .join(BaseTSGenerator.DOMAIN_SEPARATOR, circuitArtifacts[i].sourceName.replace(this._defaultDir, ""))
+        .replace(path.basename(circuitArtifacts[i].sourceName), `${circuitName}.ts`);
+
+      if (isNameAlreadyExist) {
+        circuitTypePath = path.join(
+          BaseTSGenerator.DOMAIN_SEPARATOR,
+          circuitArtifacts[i].sourceName.replace(this._defaultDir, ""),
+          `${circuitName}.ts`,
+        );
       }
 
-      this._saveFileContent(circuitArtifacts[i].circuitName, preparedNode);
+      fs.mkdirSync(path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR, path.dirname(circuitTypePath)), {
+        recursive: true,
+      });
 
-      nodesMap.set(preparedNode, true);
+      const preparedNode = this._returnTSDefinitionByArtifact(circuitArtifacts[i], circuitTypePath);
 
-      const exportDeclaration = ts.factory.createExportDeclaration(
-        undefined,
-        false,
-        undefined,
-        ts.factory.createStringLiteral(`./${circuitArtifacts[i].circuitName}`),
-      );
+      this._saveFileContent(circuitTypePath, preparedNode);
 
-      resultedSourceFileContent += this._getNodeContent(exportDeclaration) + "\n";
+      typePathsToResolve.push({
+        circuitArtifact: circuitArtifacts[i],
+        pathToGeneratedFile: path.join(CircuitTypesGenerator.TYPES_DIR, circuitTypePath),
+      });
     }
 
-    fs.writeFileSync(
-      path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR, "index.ts"),
-      resultedSourceFileContent,
+    this._resolveTypePaths(typePathsToResolve);
+  }
+
+  /**
+   * Generates the index files in the `TYPES_DIR` directory and its subdirectories.
+   *
+   * @param {ArtifactWithPath[]} typePaths - The paths to the generated files and the corresponding circuit artifacts.
+   */
+  private _resolveTypePaths(typePaths: ArtifactWithPath[]): void {
+    const rootTypesDirPath = path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR);
+    const pathToMainIndexFile = path.join(rootTypesDirPath, "index.ts");
+
+    // index file path => its content
+    const indexFilesMap: Map<string, string[]> = new Map();
+    const isCircuitNameExist: Map<string, boolean> = new Map();
+
+    for (const typePath of typePaths) {
+      const levels: string[] = typePath.pathToGeneratedFile
+        .replace(CircuitTypesGenerator.TYPES_DIR, "")
+        .split(path.sep)
+        .filter((level) => level !== "");
+
+      for (let i = 0; i < levels.length; i++) {
+        const pathToIndexFile =
+          i === 0
+            ? path.join(rootTypesDirPath, "index.ts")
+            : path.join(rootTypesDirPath, levels.slice(0, i).join(path.sep), "index.ts");
+
+        const exportDeclaration =
+          path.extname(levels[i]) === ".ts"
+            ? this._getExportDeclarationForFile(levels[i])
+            : this._getExportDeclarationForDirectory(levels[i]);
+
+        if (
+          indexFilesMap.get(pathToIndexFile) === undefined ||
+          !indexFilesMap.get(pathToIndexFile)?.includes(exportDeclaration)
+        ) {
+          indexFilesMap.set(pathToIndexFile, [
+            ...(indexFilesMap.get(pathToIndexFile) === undefined ? [] : indexFilesMap.get(pathToIndexFile)!),
+            exportDeclaration,
+          ]);
+        }
+      }
+
+      if (!isCircuitNameExist.has(typePath.circuitArtifact.circuitName)) {
+        indexFilesMap.set(pathToMainIndexFile, [
+          ...(indexFilesMap.get(pathToMainIndexFile) === undefined ? [] : indexFilesMap.get(pathToMainIndexFile)!),
+          this._getExportDeclarationForFile(path.relative(path.join(this._projectRoot), levels.join(path.sep))),
+        ]);
+      }
+
+      isCircuitNameExist.set(typePath.circuitArtifact.circuitName, true);
+    }
+
+    for (const [absolutePath, content] of indexFilesMap) {
+      this._saveFileContent(
+        path.relative(path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR), absolutePath),
+        content.join("\n"),
+      );
+    }
+  }
+
+  /**
+   * Generates the export declaration for the given directory which would be included in the index file.
+   *
+   * Example:
+   * ```ts
+   * import type * as BasicInAuthCircom from "./BasicInAuth.circom";
+   * export type { BasicInAuthCircom };
+   * ```
+   *
+   * @param {string} directory - The directory for which the export declaration is generated.
+   * @returns {string} The generated export declaration.
+   */
+  private _getExportDeclarationForDirectory(directory: string): string {
+    const importDeclaration = ts.factory.createImportDeclaration(
+      undefined,
+      ts.factory.createImportClause(
+        true,
+        undefined,
+        ts.factory.createNamespaceImport(ts.factory.createIdentifier(normalizeName(directory))),
+      ),
+      ts.factory.createStringLiteral(`./${directory}`),
     );
+    const exportDeclaration = ts.factory.createExportDeclaration(
+      undefined,
+      true,
+      ts.factory.createNamedExports([
+        ts.factory.createExportSpecifier(false, undefined, ts.factory.createIdentifier(normalizeName(directory))),
+      ]),
+    );
+
+    return this._getNodeContent(importDeclaration) + "\n" + this._getNodeContent(exportDeclaration);
+  }
+
+  /**
+   * Generates the export declaration for the given file which would be included in the index file.
+   *
+   * Example:
+   * ```ts
+   * export type * from "./Multiplier2";
+   * ```
+   *
+   * @param {string} file - The file for which the export declaration is generated.
+   * @returns {string} The generated export declaration.
+   */
+  private _getExportDeclarationForFile(file: string): string {
+    const exportDeclaration = ts.factory.createExportDeclaration(
+      undefined,
+      true,
+      undefined,
+      ts.factory.createStringLiteral(`./${file.replace(path.extname(file), "")}`),
+    );
+
+    return this._getNodeContent(exportDeclaration);
   }
 
   /**
    * Generates TypeScript interface definitions based on the single circuit artifact.
    *
-   * This function returns a content of the file with two interfaces.
+   * The generated interface for the circuit will be stored in the folder of the circuit file name.
+   *
+   * For example, if the circuit file is named `DEFAULT_DIR/Basic.circom` and the main component is named Multiplier2, then the tree structure will be:
+   *
+   * ```
+   * . (PROJECT_ROOT)
+   * ├── (TYPES_DIR, default: `generated-types/circuits`)
+   * │   └── Multiplier2.ts
+   * ```
    *
    * @param {CircuitArtifact} circuitArtifact - The circuit artifact for which the TypeScript interfaces are generated.
-   * @returns {string} The content of the file with two interfaces.
+   * @param {string} interfacePathLocation - The path to the interface file.
+   * @returns {string} The relative to the TYPES_DIR path to the generated file.
    */
-  private _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact): string {
-    const generateProofInterfaceName = this._getInterfaceName(circuitArtifact, "Private");
+  private _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact, interfacePathLocation: string): string {
+    const generateProofInterfaceContent = this._getInterfaceForProofGeneration(circuitArtifact);
+    const verifyProofInterfaceContent = this._getInterfaceForProofVerification(circuitArtifact);
+
+    return [
+      this._getImportTypesDeclarationContent(interfacePathLocation),
+      generateProofInterfaceContent,
+      verifyProofInterfaceContent,
+    ].join("\n\n");
+  }
+
+  /**
+   * Generates the interface declaration for the Verify Proof parameters.
+   */
+  private _getInterfaceForProofVerification(circuitArtifact: CircuitArtifact): string {
     const verifyProofInterfaceName = this._getInterfaceName(circuitArtifact, "Public");
+
+    let outputCounter: number = 0;
+    const verifyProofInterfaceProperties: ts.PropertySignature[] = [];
+
+    for (const signal of circuitArtifact.signals) {
+      if (signal.visibility === SignalVisibilityNames.Private) {
+        continue;
+      }
+
+      if (signal.type === SignalTypeNames.Output) {
+        verifyProofInterfaceProperties.splice(
+          outputCounter,
+          0,
+          ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal)),
+        );
+
+        outputCounter++;
+        continue;
+      }
+
+      verifyProofInterfaceProperties.push(
+        ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal)),
+      );
+    }
+
+    const verifyProofInterface = this._getInterfaceDeclaration(
+      verifyProofInterfaceName,
+      verifyProofInterfaceProperties,
+    );
+
+    return this._getNodeContent(verifyProofInterface);
+  }
+
+  /**
+   * Generates the interface declaration for the Generate Proof parameters.
+   */
+  private _getInterfaceForProofGeneration(circuitArtifact: CircuitArtifact): string {
+    const generateProofInterfaceName = this._getInterfaceName(circuitArtifact, "Private");
 
     const generateProofInterfaceProperties = circuitArtifact.signals
       .filter((signal) => signal.type != SignalTypeNames.Output)
-      .map((signal) => {
-        return ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal));
-      });
-    const verifyProofInterfaceProperties = circuitArtifact.signals
-      .filter((signal) => signal.visibility != SignalVisibilityNames.Private)
       .map((signal) => {
         return ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal));
       });
@@ -93,17 +273,8 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
       generateProofInterfaceName,
       generateProofInterfaceProperties,
     );
-    const verifyProofInterface = this._getInterfaceDeclaration(
-      verifyProofInterfaceName,
-      verifyProofInterfaceProperties,
-    );
 
-    const generateProofInterfaceContent = this._getNodeContent(generateProofInterface);
-    const verifyProofInterfaceContent = this._getNodeContent(verifyProofInterface);
-
-    return [this._getImportTypesDeclarationContent(), generateProofInterfaceContent, verifyProofInterfaceContent].join(
-      "\n\n",
-    );
+    return this._getNodeContent(generateProofInterface);
   }
 
   /**

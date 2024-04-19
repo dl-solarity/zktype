@@ -73,7 +73,7 @@ export async function runCLI() {
 
   await artifactGenerator.generateCircuitArtifacts();
 
-  const typesGenerator = new CircuitTypesGenerator();
+  const typesGenerator = new CircuitTypesGenerator(options.config);
 
   await typesGenerator.generateTypes();
 }

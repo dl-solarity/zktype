@@ -10,9 +10,9 @@ import { findProjectRoot } from "../src/utils";
 import { defaultCircuitProcessorConfig } from "../src/config";
 
 describe("Circuit Types Generation", function () {
-  const expectedTypes = ["CredentialAtomicQueryMTPOnChainVoting.ts", "Multiplier2.ts"];
+  const expectedTypes = ["core/CredentialAtomicQueryMTPOnChainVoting.ts", "core/Multiplier2.ts"];
 
-  const circuitTypesGenerator = new CircuitTypesGenerator();
+  const circuitTypesGenerator = new CircuitTypesGenerator("test/fixture");
 
   const artifactGenerator = new CircuitArtifactGenerator(
     { clean: false },

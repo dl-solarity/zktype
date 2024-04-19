@@ -95,7 +95,7 @@ export default class CircuitProcessor {
     }
 
     if (fs.readdirSync(this._circuitProcessorConfig.defaultFolder).length === 0) {
-      console.log(`The specified default folder is empty: ${this._circuitProcessorConfig.defaultFolder}`);
+      console.info(`The specified default folder is empty: ${this._circuitProcessorConfig.defaultFolder}`);
 
       return false;
     }
