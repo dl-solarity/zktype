@@ -38,13 +38,13 @@ export async function runCLI() {
     new Option(
       "--clean-ast-files",
       "A flag indicating whether the processor should clean up the previously generated circuit ASTs before processing the circuits.",
-    ).default(false),
+    ).default(true),
   );
   program.addOption(
     new Option(
       "--clean-artifacts",
       "A flag indicating whether the artifacts should be cleaned up before generating new ones.",
-    ).default(false),
+    ).default(true),
   );
   program.addOption(
     new Option(
@@ -62,7 +62,7 @@ export async function runCLI() {
       clean: options.artifactsClean,
     },
     {
-      defaultFolder: options.config,
+      defaultFolder: options.path,
       skip: options.skip,
       only: options.only,
       strict: options.strictAstGeneration,
@@ -73,7 +73,7 @@ export async function runCLI() {
 
   await artifactGenerator.generateCircuitArtifacts();
 
-  const typesGenerator = new CircuitTypesGenerator(options.config);
+  const typesGenerator = new CircuitTypesGenerator(options.path);
 
   await typesGenerator.generateTypes();
 }
