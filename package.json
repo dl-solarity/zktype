@@ -1,0 +1,53 @@
+{
+  "name": "@solarity/zktype",
+  "version": "0.1.0",
+  "description": "Unleash TypeScript bindings for Circom circuits",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "bin": "dist/bin/zktype.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist/src/",
+    "dist/bin/",
+    "src/",
+    "bin/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "build": "bunx tsc",
+    "test": "bun test",
+    "lint-fix": "prettier --write '**/*.ts'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dl-solarity/zktype.git"
+  },
+  "keywords": [
+    "solarity",
+    "circom",
+    "zkp"
+  ],
+  "author": "Distributed Lab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dl-solarity/zktype/issues"
+  },
+  "homepage": "https://github.com/dl-solarity/zktype#readme",
+  "dependencies": {
+    "@distributedlab/circom2": "0.2.18-rc.2",
+    "commander": "12.0.0",
+    "please-upgrade-node": "3.2.0",
+    "typescript": "5.4.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.0.12",
+    "circomlib": "^2.0.5",
+    "husky": "^9.0.11",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2"
+  }
+}
