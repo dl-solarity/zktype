@@ -20,13 +20,15 @@
     "prepare": "husky",
     "build": "bunx tsc",
     "test": "bun test",
-    "lint-fix": "prettier --write '**/*.ts'"
+    "lint-fix": "prettier --write '**/*.ts'",
+    "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dl-solarity/zktype.git"
   },
   "keywords": [
+    "distributedlab",
     "solarity",
     "circom",
     "zkp"
