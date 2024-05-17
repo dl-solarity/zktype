@@ -11,7 +11,7 @@ describe("Circuit AST Generation", function () {
   test("it should compile the basic circuit", async function () {
     compiler.cleanupCircuitASTs();
 
-    const pathToCircuit = require.resolve("./fixture/credentialAtomicQueryMTPOnChainVoting.circom");
+    const pathToCircuit = require.resolve("./fixture/credentialAtomicQueryMTPV2OnChainVoting.circom");
 
     await compiler.generateCircuitAST(pathToCircuit);
 
@@ -20,7 +20,7 @@ describe("Circuit AST Generation", function () {
         path.join(
           compiler.projectRoot,
           CircuitASTGenerator.TEMP_DIR,
-          "fixture/credentialAtomicQueryMTPOnChainVoting.json",
+          "fixture/credentialAtomicQueryMTPV2OnChainVoting.json",
         ),
       ),
     ).toBe(true);

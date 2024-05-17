@@ -20,6 +20,7 @@ import {
   CircomCompilerOutput,
   CircuitProcessorConfig,
   CircuitArtifactGeneratorConfig,
+  Template,
 } from "../types";
 
 /**
@@ -130,7 +131,9 @@ export default class CircuitArtifactGenerator {
       signals: [],
     };
 
-    for (const statement of ast.circomCompilerOutput[0].definitions[0].Template!.body.Block.stmts) {
+    const template = this._findTemplateForCircuit(ast.circomCompilerOutput, circuitArtifact.circuitName);
+
+    for (const statement of template.body.Block.stmts) {
       if (
         !statement.InitializationBlock ||
         !this._validateInitializationBlock(ast.sourcePath, statement.InitializationBlock) ||
@@ -222,6 +225,33 @@ export default class CircuitArtifactGenerator {
   }
 
   /**
+   * Finds the template for the circuit based on the circuit name.
+   *
+   * @param {CircomCompilerOutput[]} compilerOutputs - The compiler outputs of the circuit.
+   * @param {string} circuitName - The name of the circuit.
+   * @returns {Template} The template for the circuit.
+   */
+  private _findTemplateForCircuit(compilerOutputs: CircomCompilerOutput[], circuitName: string): Template {
+    for (const compilerOutput of compilerOutputs) {
+      if (
+        !compilerOutput.definitions ||
+        compilerOutput.definitions.length < 1 ||
+        !compilerOutput.definitions[0].Template
+      ) {
+        continue;
+      }
+
+      const template = compilerOutput.definitions[0].Template;
+
+      if (template.name === circuitName) {
+        return template;
+      }
+    }
+
+    throw new Error(`The template for the circuit ${circuitName} could not be found.`);
+  }
+
+  /**
    * Validates the AST of a circuit to ensure it meets the expected structure.
    *
    * @param {CircuitAST} ast - The AST of the circuit to be validated.
@@ -244,15 +274,6 @@ export default class CircuitArtifactGenerator {
 
     if (!ast.circomCompilerOutput[0].main_component[1].Call.id) {
       throw new Error(`The main component id is missing in the circuit AST: ${ast.sourcePath}`);
-    }
-
-    if (
-      !ast.circomCompilerOutput[0].definitions[0].Template ||
-      !ast.circomCompilerOutput[0].definitions[0].Template.body ||
-      !ast.circomCompilerOutput[0].definitions[0].Template.body.Block ||
-      !ast.circomCompilerOutput[0].definitions[0].Template.body.Block.stmts
-    ) {
-      throw new Error(`The template is missing or incomplete in the circuit AST: ${ast.sourcePath}`);
     }
   }
 

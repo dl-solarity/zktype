@@ -1,16 +1,14 @@
 pragma circom 2.0.0;
 
-include "../../node_modules/circomlib/circuits/mux1.circom";
-include "../../node_modules/circomlib/circuits/bitify.circom";
-include "../../node_modules/circomlib/circuits/poseidon.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
-
-include "./lib/query/query.circom";
-include "./lib/utils/idUtils.circom";
-include "./lib/utils/spongeHash.circom";
-include "./lib/query/comparators.circom";
-
-include "./auth/authV2.circom";
+include "../../../node_modules/circomlib/circuits/mux1.circom";
+include "../../../node_modules/circomlib/circuits/bitify.circom";
+include "../../../node_modules/circomlib/circuits/comparators.circom";
+include "../../../node_modules/circomlib/circuits/poseidon.circom";
+include "../lib/query/comparators.circom";
+include "../auth/authV2.circom";
+include "../lib/query/query.circom";
+include "../lib/utils/idUtils.circom";
+include "../lib/utils/spongeHash.circom";
 
 /**
 credentialJsonLDAtomicQueryMTP.circom - query claim value and verify claim MTP
@@ -274,14 +272,3 @@ template CredentialAtomicQueryMTPOnChainVoting(issuerLevels, claimLevels, valueA
 
     userID <== auth.userID;
 }
-
-component main{public [requestID,
-                       issuerID,
-                       issuerClaimIdenState,
-                       issuerClaimNonRevState,
-                       timestamp,
-                       isRevocationChecked,
-                       challenge,
-                       gistRoot,
-                       votingAddress,
-                       commitment]} = CredentialAtomicQueryMTPOnChainVoting(40, 32, 1, 40, 64);

@@ -173,6 +173,8 @@ export default class CircuitASTGenerator {
 
   /**
    * Returns an instance of the CircomRunner with the specified arguments.
+   *
+   * FIXME: explain error handling
    */
   private _getCircomRunner(args: string[], quiet: boolean = false): any {
     return new CircomRunner({
