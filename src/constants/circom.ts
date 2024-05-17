@@ -9,6 +9,7 @@ export enum SignalVisibilityNames {
   Private = "private",
 }
 
+// FIXME: Array could have any number of dimensions (e.g. bigint[2][3][4]...)
 export enum InternalType {
   BigInt = "bigint",
   BigIntArray = "bigint[]",

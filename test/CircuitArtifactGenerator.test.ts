@@ -12,7 +12,7 @@ import { defaultCircuitArtifactGeneratorConfig, defaultCircuitProcessorConfig } 
 describe("Circuit Artifact Generation", function () {
   const expectedGeneratedArtifacts = [
     "Basic.json",
-    "credentialAtomicQueryMTPOnChainVoting.json",
+    "credentialAtomicQueryMTPV2OnChainVoting.json",
     "lib/BasicInLib.json",
     "auth/BasicInAuth.json",
   ];
@@ -87,7 +87,7 @@ describe("Circuit Artifact Generation", function () {
     fs.cpSync("test/mocks/InvalidTemplateBlock.json", `${CircuitASTGenerator.TEMP_DIR}/InvalidTemplateBlock.json`);
 
     expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
-      "The template is missing or incomplete in the circuit AST: test/fixture/InvalidTemplateBlock.circom",
+      "The template for the circuit Multiplier2 could not be found.",
     );
   });
 

@@ -13,7 +13,7 @@ import { defaultCircuitProcessorConfig } from "../src/config";
 describe("Circuit Processor", function () {
   const validCircuitPaths = [
     "fixture/Basic.circom",
-    "fixture/credentialAtomicQueryMTPOnChainVoting.circom",
+    "fixture/credentialAtomicQueryMTPV2OnChainVoting.circom",
     "fixture/lib/BasicInLib.circom",
     "fixture/auth/BasicInAuth.circom",
   ];
