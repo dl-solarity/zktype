@@ -147,6 +147,7 @@ export default class CircuitArtifactGenerator {
         internalType: this._getInternalType(statement.InitializationBlock.initializations[0].Declaration),
         visibility: this._getSignalVisibility(ast.circomCompilerOutput[0], statement),
         name: statement.InitializationBlock.initializations[0].Declaration.name,
+        dimensions: statement.InitializationBlock.initializations[0].Declaration.dimensions.length,
       };
 
       circuitArtifact.signals.push(signal);

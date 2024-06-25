@@ -315,7 +315,13 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
       case InternalType.BigInt:
         return ts.factory.createTypeReferenceNode(this._defaultFieldName);
       case InternalType.BigIntArray:
-        return ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(this._defaultFieldName));
+        let innerType = ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(this._defaultFieldName));
+
+        for (let i = 0; i < signal.dimensions - 1; i++) {
+          innerType = ts.factory.createArrayTypeNode(innerType);
+        }
+
+        return innerType;
       default:
         throw new Error(`Unsupported signal type: ${signal.internalType}`);
     }
