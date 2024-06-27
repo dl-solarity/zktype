@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import ts from "typescript";
 
+import ZkitTSGenerator from "./ZkitTSGenerator";
 import BaseTSGenerator from "./BaseTSGenerator";
 
 import { normalizeName } from "../../utils";
@@ -18,7 +19,7 @@ import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../../cons
  *
  * Note: Currently, all signals are considered as `bigint` type.
  */
-export default class CircuitTypesGenerator extends BaseTSGenerator {
+export default class CircuitTypesGenerator extends ZkitTSGenerator {
   /**
    * Generates TypeScript interfaces based on the circuit artifacts.
    *
@@ -32,8 +33,6 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    */
   public async generateTypes(): Promise<void> {
     await this._artifactsGenerator.generateCircuitArtifacts();
-
-    this._generateBaseTypes();
 
     const circuitArtifacts = this._fetchCircuitArtifacts();
 
@@ -67,7 +66,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
         recursive: true,
       });
 
-      const preparedNode = this._returnTSDefinitionByArtifact(circuitArtifacts[i], circuitTypePath);
+      const preparedNode = this._returnTSDefinitionByArtifact(circuitArtifacts[i]);
 
       this._saveFileContent(circuitTypePath, preparedNode);
 
@@ -208,28 +207,47 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * ```
    *
    * @param {CircuitArtifact} circuitArtifact - The circuit artifact for which the TypeScript interfaces are generated.
-   * @param {string} interfacePathLocation - The path to the interface file.
    * @returns {string} The relative to the TYPES_DIR path to the generated file.
    */
-  private _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact, interfacePathLocation: string): string {
-    const generateProofInterfaceContent = this._getInterfaceForProofGeneration(circuitArtifact);
-    const verifyProofInterfaceContent = this._getInterfaceForProofVerification(circuitArtifact);
+  private _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact): string {
+    const privateSignalsInterface = this._genPrivateSignalsInterface(circuitArtifact);
+    const publicSignalsInterface = this._genPublicSignalsInterface(circuitArtifact);
+    const proofInterface = this._genProofInterface(circuitArtifact);
 
     return [
-      this._getImportTypesDeclarationContent(interfacePathLocation),
-      generateProofInterfaceContent,
-      verifyProofInterfaceContent,
+      this._getZkitImportTypesDeclarationContent(),
+      privateSignalsInterface,
+      publicSignalsInterface,
+      proofInterface,
+      this._genCircuitWrapperClassContent(circuitArtifact),
     ].join("\n\n");
+  }
+
+  /**
+   * Generates the interface declaration for the Generate Proof parameters.
+   */
+  private _genPrivateSignalsInterface(circuitArtifact: CircuitArtifact): string {
+    const interfaceName = this._getInterfaceName(circuitArtifact, "Private");
+
+    const propertySignatures = circuitArtifact.signals
+      .filter((signal) => signal.type != SignalTypeNames.Output)
+      .map((signal) => {
+        return ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal));
+      });
+
+    const interfaceDeclaration = this._getInterfaceDeclaration(interfaceName, propertySignatures);
+
+    return this._getNodeContent(interfaceDeclaration);
   }
 
   /**
    * Generates the interface declaration for the Verify Proof parameters.
    */
-  private _getInterfaceForProofVerification(circuitArtifact: CircuitArtifact): string {
-    const verifyProofInterfaceName = this._getInterfaceName(circuitArtifact, "Public");
+  private _genPublicSignalsInterface(circuitArtifact: CircuitArtifact): string {
+    const interfaceName = this._getInterfaceName(circuitArtifact, "Public");
 
     let outputCounter: number = 0;
-    const verifyProofInterfaceProperties: ts.PropertySignature[] = [];
+    const propertySignatures: ts.PropertySignature[] = [];
 
     for (const signal of circuitArtifact.signals) {
       if (signal.visibility === SignalVisibilityNames.Private) {
@@ -237,7 +255,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
       }
 
       if (signal.type === SignalTypeNames.Output) {
-        verifyProofInterfaceProperties.splice(
+        propertySignatures.splice(
           outputCounter,
           0,
           ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal)),
@@ -247,37 +265,40 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
         continue;
       }
 
-      verifyProofInterfaceProperties.push(
+      propertySignatures.push(
         ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal)),
       );
     }
 
-    const verifyProofInterface = this._getInterfaceDeclaration(
-      verifyProofInterfaceName,
-      verifyProofInterfaceProperties,
-    );
+    const interfaceDeclaration = this._getInterfaceDeclaration(interfaceName, propertySignatures);
 
-    return this._getNodeContent(verifyProofInterface);
+    return this._getNodeContent(interfaceDeclaration);
   }
 
   /**
-   * Generates the interface declaration for the Generate Proof parameters.
+   * Generates the interface declaration for the Proof structure.
    */
-  private _getInterfaceForProofGeneration(circuitArtifact: CircuitArtifact): string {
-    const generateProofInterfaceName = this._getInterfaceName(circuitArtifact, "Private");
+  private _genProofInterface(circuitArtifact: CircuitArtifact): string {
+    const interfaceName = this._getInterfaceName(circuitArtifact, "Proof");
+    const publicSignalsInterfaceName = this._getInterfaceName(circuitArtifact, "Public");
 
-    const generateProofInterfaceProperties = circuitArtifact.signals
-      .filter((signal) => signal.type != SignalTypeNames.Output)
-      .map((signal) => {
-        return ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal));
-      });
+    const propertySignatures: ts.PropertySignature[] = [];
 
-    const generateProofInterface = this._getInterfaceDeclaration(
-      generateProofInterfaceName,
-      generateProofInterfaceProperties,
+    propertySignatures.push(
+      ts.factory.createPropertySignature(undefined, "proof", undefined, this._getProofTypeNode()),
+    );
+    propertySignatures.push(
+      ts.factory.createPropertySignature(
+        undefined,
+        "publicSignals",
+        undefined,
+        ts.factory.createTypeReferenceNode(publicSignalsInterfaceName),
+      ),
     );
 
-    return this._getNodeContent(generateProofInterface);
+    const interfaceDeclaration = this._getInterfaceDeclaration(interfaceName, propertySignatures);
+
+    return this._getNodeContent(interfaceDeclaration);
   }
 
   /**
@@ -316,11 +337,13 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * @returns {ts.TypeNode} The TypeScript type node.
    */
   private _getSignalTypeNode(signal: Signal): ts.TypeNode {
+    const signalType = signal.type === SignalTypeNames.Input ? this._getPrivateInputType() : this._getPublicInputType();
+
     switch (signal.internalType) {
       case InternalType.BigInt:
-        return ts.factory.createTypeReferenceNode(this._defaultFieldName);
+        return ts.factory.createTypeReferenceNode(signalType);
       case InternalType.BigIntArray:
-        let innerType = ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(this._defaultFieldName));
+        let innerType = ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(signalType));
 
         for (let i = 0; i < signal.dimensions - 1; i++) {
           innerType = ts.factory.createArrayTypeNode(innerType);

@@ -7,6 +7,7 @@
     - Deleted support for standalone run
     - Added ability to specify where the circuit's AST files are stored
     - Added ability to specify where to put generated artifacts and types
+- Implemented Zkit wrapper generation for given circuits
 
 ## [v0.1.1]
 
