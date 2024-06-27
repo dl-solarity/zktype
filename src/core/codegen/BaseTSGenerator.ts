@@ -2,9 +2,11 @@ import fs from "fs";
 import path from "path";
 import ts from "typescript";
 
-import { findProjectRoot } from "../../utils";
+import CircuitArtifactGenerator from "../CircuitArtifactGenerator";
 
-import { CircuitArtifact } from "../../types";
+import { CircuitArtifact, ZKTypeConfig } from "../../types";
+
+import { findProjectRoot } from "../../utils";
 
 /**
  * `BaseTSGenerator` is a base class for all TypeScript generators.
@@ -12,11 +14,6 @@ import { CircuitArtifact } from "../../types";
  * It exposes common properties and methods that are shared among all TypeScript generators.
  */
 export default class BaseTSGenerator {
-  /**
-   * Directory to store all generated types files.
-   */
-  public static readonly TYPES_DIR: string = "generated-types/circuits";
-
   /**
    * This separator is needed to distinguish between generated interfaces and auxiliary generated files.
    */
@@ -27,6 +24,8 @@ export default class BaseTSGenerator {
    */
   public static readonly COMMON_TYPES_FILE_NAME: string = "types";
 
+  protected readonly _zktypeConfig: ZKTypeConfig;
+
   protected readonly _defaultFieldName: string = "BigNumberish";
 
   protected readonly _projectRoot: string;
@@ -34,11 +33,25 @@ export default class BaseTSGenerator {
   protected readonly _printer: ts.Printer;
   protected readonly _resultFile: ts.SourceFile;
 
-  constructor(protected _defaultDir: string) {
+  protected readonly _artifactsGenerator: CircuitArtifactGenerator;
+
+  constructor(config: ZKTypeConfig) {
+    this._zktypeConfig = config;
+
+    this._artifactsGenerator = new CircuitArtifactGenerator(config);
+
     this._projectRoot = findProjectRoot(process.cwd());
 
     this._printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
     this._resultFile = ts.createSourceFile("", "", ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+  }
+
+  public getOutputTypesDir(): string {
+    return this._zktypeConfig.outputTypesDir ?? "generated-types/circuits";
+  }
+
+  public getOutputArtifactsDir(): string {
+    return this._artifactsGenerator.getOutputArtifactsDir();
   }
 
   /**
@@ -67,14 +80,14 @@ export default class BaseTSGenerator {
    * @param {string} content - The content to be saved.
    */
   protected _saveFileContent(typePath: string, content: string): void {
-    if (!fs.existsSync(path.join(this._projectRoot, BaseTSGenerator.TYPES_DIR, path.dirname(typePath)))) {
-      fs.mkdirSync(path.join(this._projectRoot, BaseTSGenerator.TYPES_DIR, path.dirname(typePath)), {
+    if (!fs.existsSync(path.join(this._projectRoot, this.getOutputTypesDir(), path.dirname(typePath)))) {
+      fs.mkdirSync(path.join(this._projectRoot, this.getOutputTypesDir(), path.dirname(typePath)), {
         recursive: true,
       });
     }
 
     fs.writeFileSync(
-      path.join(this._projectRoot, BaseTSGenerator.TYPES_DIR, typePath),
+      path.join(this._projectRoot, this.getOutputTypesDir(), typePath),
       [this._getPreamble(), content].join("\n\n"),
     );
   }
@@ -100,8 +113,8 @@ export default class BaseTSGenerator {
         ),
         ts.factory.createStringLiteral(
           path.relative(
-            path.dirname(path.join(this._projectRoot, BaseTSGenerator.TYPES_DIR, interfacePathLocation)),
-            path.join(this._projectRoot, BaseTSGenerator.TYPES_DIR, BaseTSGenerator.COMMON_TYPES_FILE_NAME),
+            path.dirname(path.join(this._projectRoot, this.getOutputTypesDir(), interfacePathLocation)),
+            path.join(this._projectRoot, this.getOutputTypesDir(), BaseTSGenerator.COMMON_TYPES_FILE_NAME),
           ),
         ),
       ),

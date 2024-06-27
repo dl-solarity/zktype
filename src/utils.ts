@@ -43,3 +43,25 @@ export function normalizeName(rawName: string): string {
 
   return finalName;
 }
+
+export function findCommonPath(path1: string, path2: string): string {
+  if (path1.length === 0) {
+    return path2;
+  }
+
+  const segments1 = path1.split(path.sep);
+  const segments2 = path2.split(path.sep);
+
+  const minLength = Math.min(segments1.length, segments2.length);
+  const commonSegments: string[] = [];
+
+  for (let i = 0; i < minLength; i++) {
+    if (segments1[i] === segments2[i]) {
+      commonSegments.push(segments1[i]);
+    } else {
+      break;
+    }
+  }
+
+  return commonSegments.length ? path.join(...commonSegments) : "";
+}

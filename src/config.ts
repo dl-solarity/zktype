@@ -1,14 +1,8 @@
-import { CircuitProcessorConfig } from "./types";
+import { ZKTypeConfig } from "./types";
 
-export const defaultCircuitProcessorConfig: CircuitProcessorConfig = {
-  defaultFolder: "circuits",
-  skip: [],
-  only: [],
-  strict: false,
-  clean: true,
-  quiet: false,
-};
-
-export const defaultCircuitArtifactGeneratorConfig = {
+export const defaultCircuitArtifactGeneratorConfig: ZKTypeConfig = {
+  inputDir: "circuits",
+  outputArtifactsDir: "artifacts/circuits",
+  outputTypesDir: "generated-types/circuits",
   clean: true,
 };

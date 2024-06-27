@@ -4,7 +4,6 @@
   "description": "Unleash TypeScript bindings for Circom circuits",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "bin": "dist/bin/zktype.js",
   "engines": {
     "node": ">=18"
   },
@@ -41,8 +40,6 @@
   "homepage": "https://github.com/dl-solarity/zktype#readme",
   "dependencies": {
     "@distributedlab/circom2": "0.2.18-rc.2",
-    "commander": "12.0.0",
-    "please-upgrade-node": "3.2.0",
     "typescript": "5.4.5"
   },
   "peerDependencies": {

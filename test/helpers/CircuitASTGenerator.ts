@@ -3,35 +3,29 @@ import path from "path";
 
 const { CircomRunner, bindings } = require("@distributedlab/circom2");
 
-import { findProjectRoot } from "../utils";
+import { CircuitAST } from "../../src";
 
-import { CircuitAST } from "../types";
+import { findProjectRoot } from "../../src/utils";
 
 /**
  * `CircuitASTGenerator` serves as an interface to the Circom compiler for the first step in the circuit types generation process.
  * Its primary function is to generate the Abstract Syntax Tree (AST) for a given circuit file.
  *
  * It is designed to work independently of any filtering logic, acting solely as a conduit to the compiler.
- * @todo Consider using a class for filtering which circuits to compile for caching purposes.
- * @todo Add ability to provide options for the Circom compiler (in case if there are plans to extend functionality of ast generation).
  */
 export default class CircuitASTGenerator {
-  /**
-   * Directory to store all generated files during the AST generation process.
-   */
-  public static readonly TEMP_DIR = "cache/circuits-ast/";
-
   public readonly projectRoot: string;
 
   private readonly _wasmBytes: Buffer;
 
   constructor(
+    private outputDir: string,
     private defaultDir: string,
     private quiet: boolean = false,
   ) {
     this.projectRoot = findProjectRoot(process.cwd());
 
-    const tempDirPath = path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR);
+    const tempDirPath = path.join(this.projectRoot, this.outputDir);
 
     if (!fs.existsSync(tempDirPath)) {
       fs.mkdirSync(tempDirPath, { recursive: true });
@@ -85,7 +79,7 @@ export default class CircuitASTGenerator {
    * Cleans up all previously generated circuit ASTs.
    */
   public cleanupCircuitASTs(): void {
-    fs.rmSync(path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR), { recursive: true, force: true });
+    fs.rmSync(path.join(this.projectRoot, this.outputDir), { recursive: true, force: true });
   }
 
   /**
@@ -99,7 +93,7 @@ export default class CircuitASTGenerator {
   private _getFutureASTFilePath(sourcePath: string, filename: string): string {
     const jsonFilename = filename.endsWith(".json") ? filename : `${filename}.json`;
 
-    const filePath = path.join(CircuitASTGenerator.TEMP_DIR, sourcePath, jsonFilename);
+    const filePath = path.join(this.outputDir, sourcePath, jsonFilename);
 
     return path.resolve(filePath);
   }
@@ -153,7 +147,7 @@ export default class CircuitASTGenerator {
    * @param {string} sourcePath - The source path of the circuit file.
    */
   private _createCircuitASTDirectory(sourcePath: string): void {
-    const fullPath = path.join(CircuitASTGenerator.TEMP_DIR, sourcePath);
+    const fullPath = path.join(this.outputDir, sourcePath);
 
     fs.mkdirSync(fullPath, { recursive: true });
   }

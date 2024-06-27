@@ -1,13 +1,14 @@
 import fs from "fs";
 import path from "path";
 
-import { expect, test, describe, afterEach } from "bun:test";
+import { expect, test, describe, beforeEach, afterEach } from "bun:test";
 
-import CircuitASTGenerator from "../src/core/CircuitASTGenerator";
+import { generateAST } from "./helpers/generator";
+
 import CircuitArtifactGenerator from "../src/core/CircuitArtifactGenerator";
 
 import { findProjectRoot } from "../src/utils";
-import { defaultCircuitArtifactGeneratorConfig, defaultCircuitProcessorConfig } from "../src/config";
+import { defaultCircuitArtifactGeneratorConfig } from "../src/config";
 
 describe("Circuit Artifact Generation", function () {
   const expectedGeneratedArtifacts = [
@@ -19,22 +20,25 @@ describe("Circuit Artifact Generation", function () {
 
   let projectRoot = findProjectRoot(__dirname);
 
-  const artifactGenerator = new CircuitArtifactGenerator(defaultCircuitArtifactGeneratorConfig, {
-    ...defaultCircuitProcessorConfig,
-    defaultFolder: "test/fixture",
-    skip: ["lib/BadBasicInLib.circom"],
-    clean: false,
+  const inputDir = "test/fixture";
+  const astDir = "test/cache/circuits-ast";
+  const artifactGenerator = new CircuitArtifactGenerator({
+    inputDir: astDir,
+    outputArtifactsDir: defaultCircuitArtifactGeneratorConfig.outputArtifactsDir,
+    clean: defaultCircuitArtifactGeneratorConfig.clean,
   });
 
   function getPathToArtifact(artifactPath: string) {
-    return path.join(projectRoot, CircuitArtifactGenerator.ARTIFACTS_DIR, artifactPath);
+    return path.join(projectRoot, artifactGenerator.getOutputArtifactsDir(), artifactPath);
   }
 
-  afterEach(async () => {
-    const dirWithASTs = CircuitASTGenerator.TEMP_DIR;
+  beforeEach(async () => {
+    await generateAST(inputDir, astDir, true, [], []);
+  });
 
-    if (fs.existsSync(dirWithASTs)) {
-      fs.rmSync(dirWithASTs, { recursive: true, force: true });
+  afterEach(async () => {
+    if (fs.existsSync(astDir)) {
+      fs.rmSync(astDir, { recursive: true, force: true });
     }
   });
 
@@ -49,7 +53,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   test("it should throw an error if the compiler version field is missing", async function () {
-    fs.cpSync("test/mocks/InvalidCompilerVersion.json", `${CircuitASTGenerator.TEMP_DIR}/InvalidCompilerVersion.json`);
+    fs.cpSync("test/mocks/InvalidCompilerVersion.json", `${astDir}/InvalidCompilerVersion.json`);
 
     expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
       "The compiler version is missing in the circuit AST: test/fixture/InvalidCompilerVersion.circom",
@@ -57,10 +61,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   test("it should throw an error if the name in the initialization block is missing", async function () {
-    fs.cpSync(
-      "test/mocks/InvalidInitializationBlockName.json",
-      `${CircuitASTGenerator.TEMP_DIR}/InvalidInitializationBlockName.json`,
-    );
+    fs.cpSync("test/mocks/InvalidInitializationBlockName.json", `${astDir}/InvalidInitializationBlockName.json`);
 
     expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
       "The initializations field of initialization block is missing or incomplete in the circuit AST: test/fixture/InvalidInitializationBlockName.circom",
@@ -68,7 +69,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   test("it should throw an error if the main component is missing", async function () {
-    fs.cpSync("test/mocks/InvalidMainComponent.json", `${CircuitASTGenerator.TEMP_DIR}/InvalidMainComponent.json`);
+    fs.cpSync("test/mocks/InvalidMainComponent.json", `${astDir}/InvalidMainComponent.json`);
 
     expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
       "The main component is missing or incomplete in the circuit AST: test/fixture/InvalidMainComponent.circom",
@@ -76,7 +77,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   test("it should throw an error if the id of the main component is missing", async function () {
-    fs.cpSync("test/mocks/InvalidMainComponentId.json", `${CircuitASTGenerator.TEMP_DIR}/InvalidMainComponentId.json`);
+    fs.cpSync("test/mocks/InvalidMainComponentId.json", `${astDir}/InvalidMainComponentId.json`);
 
     expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
       "The main component id is missing in the circuit AST: test/fixture/InvalidMainComponentId.circom",
@@ -84,7 +85,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   test("it should throw an error if the template block is missing", async function () {
-    fs.cpSync("test/mocks/InvalidTemplateBlock.json", `${CircuitASTGenerator.TEMP_DIR}/InvalidTemplateBlock.json`);
+    fs.cpSync("test/mocks/InvalidTemplateBlock.json", `${astDir}/InvalidTemplateBlock.json`);
 
     expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
       "The template for the circuit Multiplier2 could not be found.",
@@ -92,7 +93,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   test("it should throw an error if the xtype of the initialization block is missing", async function () {
-    fs.cpSync("test/mocks/InvalidXTypeField.json", `${CircuitASTGenerator.TEMP_DIR}/InvalidXTypeField.json`);
+    fs.cpSync("test/mocks/InvalidXTypeField.json", `${astDir}/InvalidXTypeField.json`);
 
     expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
       "The initialization block xtype is missing in the circuit AST: test/fixture/InvalidXTypeField.circom",

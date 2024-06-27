@@ -4,8 +4,6 @@ import ts from "typescript";
 
 import BaseTSGenerator from "./BaseTSGenerator";
 
-import CircuitArtifactGenerator from "../CircuitArtifactGenerator";
-
 import { normalizeName } from "../../utils";
 
 import { CircuitArtifact, Signal, ArtifactWithPath } from "../../types";
@@ -33,11 +31,13 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * @returns {Promise<void>} A promise that resolves when all interfaces have been generated.
    */
   public async generateTypes(): Promise<void> {
+    await this._artifactsGenerator.generateCircuitArtifacts();
+
     this._generateBaseTypes();
 
     const circuitArtifacts = this._fetchCircuitArtifacts();
 
-    fs.mkdirSync(CircuitTypesGenerator.TYPES_DIR, { recursive: true });
+    fs.mkdirSync(this.getOutputTypesDir(), { recursive: true });
 
     const isNameExist: Map<string, boolean> = new Map();
     const typePathsToResolve: ArtifactWithPath[] = [];
@@ -49,18 +49,21 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
       isNameExist.set(circuitName, true);
 
       let circuitTypePath = path
-        .join(BaseTSGenerator.DOMAIN_SEPARATOR, circuitArtifacts[i].sourceName.replace(this._defaultDir, ""))
+        .join(
+          BaseTSGenerator.DOMAIN_SEPARATOR,
+          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
+        )
         .replace(path.basename(circuitArtifacts[i].sourceName), `${circuitName}.ts`);
 
       if (isNameAlreadyExist) {
         circuitTypePath = path.join(
           BaseTSGenerator.DOMAIN_SEPARATOR,
-          circuitArtifacts[i].sourceName.replace(this._defaultDir, ""),
+          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
           `${circuitName}.ts`,
         );
       }
 
-      fs.mkdirSync(path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR, path.dirname(circuitTypePath)), {
+      fs.mkdirSync(path.join(this._projectRoot, this.getOutputTypesDir(), path.dirname(circuitTypePath)), {
         recursive: true,
       });
 
@@ -70,7 +73,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
 
       typePathsToResolve.push({
         circuitArtifact: circuitArtifacts[i],
-        pathToGeneratedFile: path.join(CircuitTypesGenerator.TYPES_DIR, circuitTypePath),
+        pathToGeneratedFile: path.join(this.getOutputTypesDir(), circuitTypePath),
       });
     }
 
@@ -83,7 +86,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * @param {ArtifactWithPath[]} typePaths - The paths to the generated files and the corresponding circuit artifacts.
    */
   private _resolveTypePaths(typePaths: ArtifactWithPath[]): void {
-    const rootTypesDirPath = path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR);
+    const rootTypesDirPath = path.join(this._projectRoot, this.getOutputTypesDir());
     const pathToMainIndexFile = path.join(rootTypesDirPath, "index.ts");
 
     // index file path => its content
@@ -92,7 +95,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
 
     for (const typePath of typePaths) {
       const levels: string[] = typePath.pathToGeneratedFile
-        .replace(CircuitTypesGenerator.TYPES_DIR, "")
+        .replace(this.getOutputTypesDir(), "")
         .split(path.sep)
         .filter((level) => level !== "");
 
@@ -130,7 +133,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
 
     for (const [absolutePath, content] of indexFilesMap) {
       this._saveFileContent(
-        path.relative(path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR), absolutePath),
+        path.relative(path.join(this._projectRoot, this.getOutputTypesDir()), absolutePath),
         content.join("\n"),
       );
     }
@@ -285,7 +288,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * @returns {CircuitArtifact[]} The fetched circuit artifacts.
    */
   private _fetchCircuitArtifacts(): CircuitArtifact[] {
-    const files = fs.readdirSync(CircuitArtifactGenerator.ARTIFACTS_DIR, { recursive: true });
+    const files = fs.readdirSync(this._artifactsGenerator.getOutputArtifactsDir(), { recursive: true });
 
     const artifacts: CircuitArtifact[] = [];
 
@@ -296,7 +299,9 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
         continue;
       }
 
-      artifacts.push(JSON.parse(fs.readFileSync(path.join(CircuitArtifactGenerator.ARTIFACTS_DIR, filePath), "utf-8")));
+      artifacts.push(
+        JSON.parse(fs.readFileSync(path.join(this._artifactsGenerator.getOutputArtifactsDir(), filePath), "utf-8")),
+      );
     }
 
     return artifacts;

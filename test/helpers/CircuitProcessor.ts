@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 
+import { CircuitProcessorConfig } from "./types";
+
 import CircuitASTGenerator from "./CircuitASTGenerator";
 
-import { findProjectRoot } from "../utils";
-import { CircuitProcessorConfig } from "../types";
+import { findProjectRoot } from "../../src/utils";
 
 /**
  * `CircuitProcessor` is responsible for processing circuits by generating their Abstract Syntax Trees (ASTs) using the `CircuitASTGenerator`.
@@ -38,6 +39,7 @@ export default class CircuitProcessor {
     this._skipFilterGlobs = this._circuitProcessorConfig.skip.map((file) => new RegExp(file));
 
     this._circuitASTGenerator = new CircuitASTGenerator(
+      this._circuitProcessorConfig.astOutputDir,
       this._circuitProcessorConfig.defaultFolder,
       this._circuitProcessorConfig.quiet,
     );
