@@ -8,7 +8,7 @@ import { generateAST } from "./helpers/generator";
 
 import CircuitTypesGenerator from "../src/core/CircuitTypesGenerator";
 
-describe("Circuit Proof Generation", function () {
+describe.only("Circuit Proof Generation", function () {
   const astDir = "test/cache/circuits-ast";
 
   const circuitTypesGenerator = new CircuitTypesGenerator({

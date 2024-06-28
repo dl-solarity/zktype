@@ -108,6 +108,8 @@ export default class CircuitCompiler {
     } catch (error) {
       await this._displayCircuitGenerationError(circuitName, args);
 
+      console.error(error);
+
       return false;
     }
   }
@@ -116,7 +118,11 @@ export default class CircuitCompiler {
     const r1csFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.r1cs`;
     const zKeyFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.zkey`;
 
-    await snarkjs.zKey.newZKey(r1csFile, "~/ptau/24.ptau", zKeyFile);
+    await snarkjs.zKey.newZKey(
+      r1csFile,
+      path.join(this.projectRoot, "test/helpers/powersOfTau28_hez_final_08.ptau"),
+      zKeyFile,
+    );
   }
 
   private async _generateVKeyFile(outputDir: string, circuitName: string) {
