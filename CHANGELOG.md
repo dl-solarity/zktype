@@ -1,9 +1,5 @@
 # Changelog
 
-## [TBD]
- 
-- Define a list of helper functions. Validation per input in circuit, conversions?
-
 ## [v0.2.0]
 
 - Resolved an issue where inputs could have the wrong number of dimensions, such as `bigint[]` when `bigint[][]` was expected.
