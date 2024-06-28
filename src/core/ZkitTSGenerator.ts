@@ -5,7 +5,7 @@ import prettier from "prettier";
 
 import BaseTSGenerator from "./BaseTSGenerator";
 
-import { CircuitArtifact, TypeExtensionTemplateParams, WrapperTemplateParams } from "../types";
+import { CircuitArtifact, Inputs, TypeExtensionTemplateParams, WrapperTemplateParams } from "../types";
 
 import { SignalTypeNames, SignalVisibilityNames } from "../constants";
 
@@ -24,12 +24,12 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
     let outputCounter: number = 0;
-    const publicInputs: string[] = [];
+    const publicInputs: Inputs[] = [];
 
-    const privateInputs: string[] = circuitArtifact.signals
+    const privateInputs: Inputs[] = circuitArtifact.signals
       .filter((signal) => signal.type != SignalTypeNames.Output)
       .map((signal) => {
-        return signal.name;
+        return { name: signal.name, dimensions: "[]".repeat(signal.dimensions) };
       });
 
     for (const signal of circuitArtifact.signals) {
@@ -38,13 +38,13 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       }
 
       if (signal.type === SignalTypeNames.Output) {
-        publicInputs.splice(outputCounter, 0, signal.name);
+        publicInputs.splice(outputCounter, 0, { name: signal.name, dimensions: "[]".repeat(signal.dimensions) });
 
         outputCounter++;
         continue;
       }
 
-      publicInputs.push(signal.name);
+      publicInputs.push({ name: signal.name, dimensions: "[]".repeat(signal.dimensions) });
     }
 
     const templateParams: WrapperTemplateParams = {

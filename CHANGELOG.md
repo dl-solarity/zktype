@@ -6,7 +6,7 @@
 
 ## [v0.2.0]
 
-- Resolved an issue where arrays might have multiple dimensions, such as `bigint[][][]`.
+- Resolved an issue where inputs could have the wrong number of dimensions, such as `bigint[]` when `bigint[][]` was expected.
 - Refactored architecture to work as a library
     - Deleted support for standalone run
     - Added ability to specify where the circuit's AST files are stored

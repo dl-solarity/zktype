@@ -10,13 +10,13 @@ import {
 
 export interface <%= privateInputsInterfaceName %> {
 <% for (let i = 0; i < privateInputs.length; i++) { -%>
-    <%= privateInputs[i] %>: NumberLike;
+    <%= privateInputs[i].name %>: NumberLike <%= privateInputs[i].dimensions %>;
 <% } -%>
 }
 
 export interface <%= publicInputsInterfaceName %> {
 <% for (let i = 0; i < publicInputs.length; i++) { -%>
-    <%= publicInputs[i] %>: NumericString;
+    <%= publicInputs[i].name %>: NumericString <%= publicInputs[i].dimensions %>;
 <% } -%>
 }
 
