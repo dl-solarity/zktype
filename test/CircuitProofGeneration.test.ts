@@ -26,7 +26,8 @@ describe("Circuit Proof Generation", function () {
   });
 
   it("should generate and verify proof", async () => {
-    const circuit = new Multiplier2Circuit(config);
+    const object = await circuitTypesGenerator.getCircuitObject("Multiplier2Circuit");
+    const circuit = new object(config);
 
     const proof = await circuit.generateProof({ in1: 2, in2: 3 });
     expect(await circuit.verifyProof(proof)).to.be.true;

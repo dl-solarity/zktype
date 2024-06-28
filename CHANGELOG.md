@@ -10,6 +10,7 @@
 - Implemented Zkit wrapper generation for given circuits
 - Used ejs instead of ts factory to render the wrapper class
 - Added generation of the hardhat runtime extension file for circuits 
+- Added a helper function to return the circuit object from given name
 
 ## [v0.1.1]
 

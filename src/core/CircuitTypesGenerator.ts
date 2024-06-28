@@ -19,6 +19,17 @@ import { CircuitArtifact, ArtifactWithPath } from "../types";
  */
 export default class CircuitTypesGenerator extends ZkitTSGenerator {
   /**
+   * Returns an object that represents the circuit class based on the circuit name.
+   */
+  public async getCircuitObject(circuitName: string): Promise<any> {
+    const pathToGeneratedTypes = path.join(this._projectRoot, this.getOutputTypesDir());
+
+    const module = await import(pathToGeneratedTypes);
+
+    return module[circuitName];
+  }
+
+  /**
    * Generates TypeScript interfaces based on the circuit artifacts.
    *
    * Based on each circuitArtifact one file with two interfaces is generated:
