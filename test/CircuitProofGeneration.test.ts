@@ -11,7 +11,15 @@ import CircuitTypesGenerator from "../src/core/CircuitTypesGenerator";
 describe("Circuit Proof Generation", function () {
   const astDir = "test/cache/circuits-ast";
 
-  const circuitTypesGenerator = new CircuitTypesGenerator({ inputDir: astDir });
+  const circuitTypesGenerator = new CircuitTypesGenerator({
+    circuitsASTPaths: [
+      "test/cache/circuits-ast/Basic.json",
+      "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",
+      "test/cache/circuits-ast/lib/BasicInLib.json",
+      "test/cache/circuits-ast/auth/EMultiplier.json",
+      "test/cache/circuits-ast/auth/BasicInAuth.json",
+    ],
+  });
 
   const config: CircuitZKitConfig = {
     circuitName: "Basic",

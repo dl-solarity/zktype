@@ -48,7 +48,7 @@ export default class CircuitArtifactGenerator {
    * Generates circuit artifacts based on the ASTs.
    */
   public async generateCircuitArtifacts(): Promise<void> {
-    const astFilePaths = this._fetchASTFilePaths();
+    const astFilePaths = this._circuitArtifactGeneratorConfig.circuitsASTPaths;
 
     if (this._circuitArtifactGeneratorConfig.clean) {
       this._cleanArtifacts();
@@ -58,7 +58,7 @@ export default class CircuitArtifactGenerator {
     const artifactsToSave: CircuitArtifact[] = [];
 
     for (const astFilePath of astFilePaths) {
-      const circuitArtifact = await this._extractArtifact(astFilePath);
+      const circuitArtifact = await this.extractArtifact(astFilePath);
 
       artifactsToSave.push(circuitArtifact);
 
@@ -84,31 +84,6 @@ export default class CircuitArtifactGenerator {
   }
 
   /**
-   * Fetches the file paths of the generated AST JSON files.
-   *
-   * If the file path does not have an extension or the extension is not `.json`, it will be ignored.
-   *
-   * @returns {string[]} An array of file paths.
-   */
-  private _fetchASTFilePaths(): string[] {
-    const files = fs.readdirSync(this._circuitArtifactGeneratorConfig.inputDir, { recursive: true });
-
-    const astFiles: string[] = [];
-
-    for (const file of files) {
-      const filePath = file.toString();
-
-      if (!path.extname(filePath) || !path.extname(filePath).includes(".json")) {
-        continue;
-      }
-
-      astFiles.push(filePath);
-    }
-
-    return astFiles;
-  }
-
-  /**
    * Extracts the artifact information from the AST JSON file.
    *
    * All the fields that are required for the artifact are extracted from the AST are validated.
@@ -116,10 +91,8 @@ export default class CircuitArtifactGenerator {
    * @param {string} pathToTheAST - The path to the AST JSON file.
    * @returns {Promise<CircuitArtifact>} A promise that resolves to the extracted circuit artifact.
    */
-  private async _extractArtifact(pathToTheAST: string): Promise<CircuitArtifact> {
-    const ast: CircuitAST = JSON.parse(
-      fs.readFileSync(path.resolve(this._circuitArtifactGeneratorConfig.inputDir, pathToTheAST), "utf-8"),
-    );
+  public async extractArtifact(pathToTheAST: string): Promise<CircuitArtifact> {
+    const ast: CircuitAST = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
 
     this._validateCircuitAST(ast);
 

@@ -7,9 +7,9 @@ export interface ZKTypeConfig extends ArtifactGeneratorConfig {
 
 export interface ArtifactGeneratorConfig {
   /**
-   * The path to the directory where the circuit AST files are stored.
+   * An array of paths to the circuits' AST files.
    */
-  inputDir: string;
+  circuitsASTPaths: string[];
 
   /**
    * The path to the directory where the generated artifacts will be stored.
