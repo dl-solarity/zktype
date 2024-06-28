@@ -15,9 +15,10 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "build": "tsc",
-    "test": "mocha --recursive 'test/**/*.ts' --exit",
-    "coverage": "nyc mocha --recursive 'test/**/*.ts' --exit",
+    "prepare-test": "ts-node ./test/helpers/generateTypes.ts",
+    "build": "npm run prepare-test && tsc",
+    "test": "npm run prepare-test && mocha --recursive 'test/**/*.ts' --exit",
+    "coverage": "prepare-test && nyc mocha --recursive 'test/**/*.ts' --exit",
     "lint-fix": "prettier --write '**/*.ts'",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
   },
@@ -63,6 +64,7 @@
     "mocha": "^10.5.2",
     "nyc": "^17.0.0",
     "prettier": "^3.2.5",
+    "snarkjs": "^0.7.4",
     "ts-node": "^10.9.2"
   }
 }

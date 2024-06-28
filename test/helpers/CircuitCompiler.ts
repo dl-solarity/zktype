@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 
+// @ts-ignore
+import * as snarkjs from "snarkjs";
+
+const { execSync } = require("child_process");
+
 const { CircomRunner, bindings } = require("@distributedlab/circom2");
 
 import { CircuitAST } from "../../src";
@@ -8,12 +13,12 @@ import { CircuitAST } from "../../src";
 import { findProjectRoot } from "../../src/utils";
 
 /**
- * `CircuitASTGenerator` serves as an interface to the Circom compiler for the first step in the circuit types generation process.
+ * `CircuitCompiler` serves as an interface to the Circom compiler for the first step in the circuit types generation process.
  * Its primary function is to generate the Abstract Syntax Tree (AST) for a given circuit file.
  *
  * It is designed to work independently of any filtering logic, acting solely as a conduit to the compiler.
  */
-export default class CircuitASTGenerator {
+export default class CircuitCompiler {
   public readonly projectRoot: string;
 
   private readonly _wasmBytes: Buffer;
@@ -73,6 +78,54 @@ export default class CircuitASTGenerator {
 
       return false;
     }
+  }
+
+  public async compileCircuit(filePath: string, outputDir: string): Promise<boolean> {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`The specified circuit file does not exist: ${filePath}`);
+    }
+
+    const circuitName = this._extractCircuitName(filePath);
+
+    fs.mkdirSync(path.join(this.projectRoot, outputDir), { recursive: true });
+
+    const args = [
+      path.join(this.projectRoot, filePath),
+      "--output",
+      path.join(this.projectRoot, outputDir),
+      "--wasm",
+      "--json",
+      "--r1cs",
+    ];
+
+    try {
+      await this._getCircomRunner(args, true).execute(this._wasmBytes);
+
+      await this._generateZKeyFile(outputDir, circuitName);
+      await this._generateVKeyFile(outputDir, circuitName);
+
+      return true;
+    } catch (error) {
+      await this._displayCircuitGenerationError(circuitName, args);
+
+      return false;
+    }
+  }
+
+  private async _generateZKeyFile(outputDir: string, circuitName: string) {
+    const r1csFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.r1cs`;
+    const zKeyFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.zkey`;
+
+    await snarkjs.zKey.newZKey(r1csFile, "~/ptau/24.ptau", zKeyFile);
+  }
+
+  private async _generateVKeyFile(outputDir: string, circuitName: string) {
+    const zkeyFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.zkey`;
+    const vKeyFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.vkey.json`;
+
+    const vKeyData = await snarkjs.zKey.exportVerificationKey(zkeyFile);
+
+    fs.writeFileSync(vKeyFile, JSON.stringify(vKeyData));
   }
 
   /**

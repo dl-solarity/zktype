@@ -3,12 +3,12 @@ import path from "path";
 
 import { CircuitProcessorConfig } from "./types";
 
-import CircuitASTGenerator from "./CircuitASTGenerator";
+import CircuitCompiler from "./CircuitCompiler";
 
 import { findProjectRoot } from "../../src/utils";
 
 /**
- * `CircuitProcessor` is responsible for processing circuits by generating their Abstract Syntax Trees (ASTs) using the `CircuitASTGenerator`.
+ * `CircuitProcessor` is responsible for processing circuits by generating their Abstract Syntax Trees (ASTs) using the `CircuitCompiler`.
  * It provides a mechanism for filtering which circuits to process based on the configuration provided.
  *
  * Filtering is based on the RegExp matching of file paths against the `only` and `skip` patterns.
@@ -21,7 +21,7 @@ export default class CircuitProcessor {
   private readonly _onlyFilterGlobs: RegExp[];
   private readonly _skipFilterGlobs: RegExp[];
 
-  private readonly _circuitASTGenerator: CircuitASTGenerator;
+  public readonly circuitCompiler: CircuitCompiler;
 
   private readonly _projectRoot: string = findProjectRoot(process.cwd());
 
@@ -38,7 +38,7 @@ export default class CircuitProcessor {
     this._onlyFilterGlobs = this._circuitProcessorConfig.only.map((file) => new RegExp(file));
     this._skipFilterGlobs = this._circuitProcessorConfig.skip.map((file) => new RegExp(file));
 
-    this._circuitASTGenerator = new CircuitASTGenerator(
+    this.circuitCompiler = new CircuitCompiler(
       this._circuitProcessorConfig.astOutputDir,
       this._circuitProcessorConfig.defaultFolder,
       this._circuitProcessorConfig.quiet,
@@ -46,7 +46,7 @@ export default class CircuitProcessor {
   }
 
   /**
-   * Processes all circuits within the default folder by generating their ASTs using the CircuitASTGenerator.
+   * Processes all circuits within the default folder by generating their ASTs using the CircuitCompiler.
    * It performs a health check of the default folder before proceeding with the file processing.
    *
    * If the `clean` option is set to `true`, the method will clean up the previously generated circuit ASTs before processing the circuits.
@@ -60,13 +60,13 @@ export default class CircuitProcessor {
     }
 
     if (this._circuitProcessorConfig.clean) {
-      this._circuitASTGenerator.cleanupCircuitASTs();
+      this.circuitCompiler.cleanupCircuitASTs();
     }
 
     const circuitFiles = this._fetchCircuitFiles();
 
     for (const circuitFile of circuitFiles) {
-      const isSuccess = await this._circuitASTGenerator.generateCircuitAST(
+      const isSuccess = await this.circuitCompiler.generateCircuitAST(
         path.resolve(this._circuitProcessorConfig.defaultFolder, circuitFile),
       );
 

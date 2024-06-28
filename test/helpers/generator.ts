@@ -6,7 +6,7 @@ export async function generateAST(
   clean: boolean,
   skip: string[],
   only: string[],
-): Promise<void> {
+): Promise<CircuitProcessor> {
   const preprocessor = new CircuitProcessor({
     defaultFolder: inputDir,
     astOutputDir: outputDir,
@@ -18,4 +18,6 @@ export async function generateAST(
   });
 
   await preprocessor.processCircuits();
+
+  return preprocessor;
 }
