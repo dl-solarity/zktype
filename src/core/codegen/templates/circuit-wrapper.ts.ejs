@@ -1,0 +1,77 @@
+import {
+  Calldata,
+  CircuitZKit,
+  CircuitZKitConfig,
+  Groth16Proof,
+  NumberLike,
+  NumericString,
+  PublicSignals,
+} from "@solarity/zkit";
+
+export interface <%= privateInputsInterfaceName %> {
+<% for (let i = 0; i < privateInputs.length; i++) { -%>
+    <%= privateInputs[i] %>: NumberLike;
+<% } -%>
+}
+
+export interface <%= publicInputsInterfaceName %> {
+<% for (let i = 0; i < publicInputs.length; i++) { -%>
+    <%= publicInputs[i] %>: NumericString;
+<% } -%>
+}
+
+export interface <%= proofInterfaceName %> {
+  proof: Groth16Proof;
+  publicSignals: <%= publicInputsInterfaceName %>;
+}
+
+export default class <%= circuitClassName %> extends CircuitZKit {
+  constructor(config: CircuitZKitConfig) {
+    super(config);
+  }
+
+  public async generateProof(inputs: <%= privateInputsInterfaceName %>): Promise<<%= proofInterfaceName %>> {
+    const proof = await super.generateProof(inputs as any);
+    return {
+      proof: proof.proof,
+      publicSignals: this._normalizePublicSignals(proof.publicSignals),
+    };
+  }
+
+  public async verifyProof(proof: <%= proofInterfaceName %>): Promise<boolean> {
+    return await super.verifyProof({
+      proof: proof.proof,
+      publicSignals: this._denormalizePublicSignals(proof.publicSignals),
+    });
+  }
+
+  public async generateCalldata(proof: <%= proofInterfaceName %>): Promise<Calldata> {
+    return await super.generateCalldata({
+      proof: proof.proof,
+      publicSignals: this._denormalizePublicSignals(proof.publicSignals),
+    });
+  }
+
+  private _normalizePublicSignals(publicSignals: PublicSignals): <%= publicInputsInterfaceName %> {
+    const signalNames = this._getSignalNames();
+    return signalNames.reduce((acc: any, signalName, index) => {
+      acc[signalName] = publicSignals[index];
+      return acc;
+    }, {});
+  }
+
+  private _denormalizePublicSignals(publicSignals: <%= publicInputsInterfaceName %>): PublicSignals {
+    const signalNames = this._getSignalNames();
+    return signalNames.map((signalName) => {
+      return (publicSignals as any)[signalName];
+    });
+  }
+
+  private _getSignalNames(): string[] {
+    return [
+        <% for (let i = 0; i < publicInputs.length; i++) { -%>
+            "<%= publicInputs[i] %>",
+        <% } -%>
+    ];
+  }
+}

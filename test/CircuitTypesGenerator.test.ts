@@ -41,15 +41,4 @@ describe("Circuit Types Generation", function () {
       expect(fs.existsSync(pathToCircuit)).to.be.true;
     }
   });
-
-  it("should throw an error if the xtype of the initialization block is missing", async function () {
-    fs.cpSync(
-      "test/mocks/InvalidInternalType.json",
-      `${circuitTypesGenerator.getOutputArtifactsDir()}/InvalidInternalType.json`,
-    );
-
-    await expect(circuitTypesGenerator.generateTypes()).to.be.rejectedWith("Unsupported signal type: string");
-
-    fs.rmSync(`${circuitTypesGenerator.getOutputArtifactsDir()}/InvalidInternalType.json`);
-  });
 });
