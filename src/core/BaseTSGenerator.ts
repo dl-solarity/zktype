@@ -39,10 +39,16 @@ export default class BaseTSGenerator {
     this._resultFile = ts.createSourceFile("", "", ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
   }
 
+  /**
+   * Returns the path to the output directory for the generated TypeScript files.
+   */
   public getOutputTypesDir(): string {
     return this._zktypeConfig.outputTypesDir ?? "generated-types/circuits";
   }
 
+  /**
+   * Returns the path to the output directory for the generated artifacts.
+   */
   public getOutputArtifactsDir(): string {
     return this._artifactsGenerator.getOutputArtifactsDir();
   }
