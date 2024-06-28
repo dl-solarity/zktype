@@ -5,11 +5,15 @@ export interface ArtifactWithPath {
   pathToGeneratedFile: string;
 }
 
-export interface TemplateParams {
+export interface WrapperTemplateParams {
   publicInputsInterfaceName: string;
   privateInputs: string[];
   publicInputs: string[];
   proofInterfaceName: string;
   privateInputsInterfaceName: string;
   circuitClassName: string;
+}
+
+export interface TypeExtensionTemplateParams {
+  circuitClassNames: string[];
 }

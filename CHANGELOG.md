@@ -9,6 +9,7 @@
     - Added ability to specify where to put generated artifacts and types
 - Implemented Zkit wrapper generation for given circuits
 - Used ejs instead of ts factory to render the wrapper class
+- Added generation of the hardhat runtime extension file for circuits 
 
 ## [v0.1.1]
 

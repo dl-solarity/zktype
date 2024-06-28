@@ -60,6 +60,7 @@
     "chai": "^4.4.1",
     "chai-as-promised": "^7.1.1",
     "circomlib": "^2.0.5",
+    "hardhat": "^2.22.5",
     "husky": "^9.0.11",
     "mocha": "^10.5.2",
     "nyc": "^17.0.0",

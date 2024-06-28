@@ -25,7 +25,7 @@ export interface <%= proofInterfaceName %> {
   publicSignals: <%= publicInputsInterfaceName %>;
 }
 
-export default class <%= circuitClassName %> extends CircuitZKit {
+export class <%= circuitClassName %> extends CircuitZKit {
   constructor(config: CircuitZKitConfig) {
     super(config);
   }
@@ -76,3 +76,5 @@ export default class <%= circuitClassName %> extends CircuitZKit {
     ];
   }
 }
+
+export default <%= circuitClassName %>;

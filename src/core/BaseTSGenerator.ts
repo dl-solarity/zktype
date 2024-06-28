@@ -88,6 +88,16 @@ export default class BaseTSGenerator {
   }
 
   /**
+   * Extracts the circuit name from the circuit artifact.
+   *
+   * @param {CircuitArtifact} circuitArtifact - The circuit artifact from which the circuit name is extracted.
+   * @returns {string} The extracted circuit name.
+   */
+  protected _getCircuitName(circuitArtifact: CircuitArtifact): string {
+    return `${circuitArtifact.circuitName.replace(path.extname(circuitArtifact.circuitName), "")}Circuit`;
+  }
+
+  /**
    * Returns the preamble for the generated file.
    */
   protected _getPreamble(): string {

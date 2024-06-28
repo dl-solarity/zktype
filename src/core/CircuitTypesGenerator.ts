@@ -74,7 +74,7 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
       });
     }
 
-    this._resolveTypePaths(typePathsToResolve);
+    await this._resolveTypePaths(typePathsToResolve);
   }
 
   /**
@@ -82,13 +82,15 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
    *
    * @param {ArtifactWithPath[]} typePaths - The paths to the generated files and the corresponding circuit artifacts.
    */
-  private _resolveTypePaths(typePaths: ArtifactWithPath[]): void {
+  private async _resolveTypePaths(typePaths: ArtifactWithPath[]): Promise<void> {
     const rootTypesDirPath = path.join(this._projectRoot, this.getOutputTypesDir());
     const pathToMainIndexFile = path.join(rootTypesDirPath, "index.ts");
 
     // index file path => its content
     const indexFilesMap: Map<string, string[]> = new Map();
     const isCircuitNameExist: Map<string, boolean> = new Map();
+
+    const topLevelCircuits: string[] = [];
 
     for (const typePath of typePaths) {
       const levels: string[] = typePath.pathToGeneratedFile
@@ -123,6 +125,8 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
           ...(indexFilesMap.get(pathToMainIndexFile) === undefined ? [] : indexFilesMap.get(pathToMainIndexFile)!),
           this._getExportDeclarationForFile(path.relative(path.join(this._projectRoot), levels.join(path.sep))),
         ]);
+
+        topLevelCircuits.push(this._getCircuitName(typePath.circuitArtifact));
       }
 
       isCircuitNameExist.set(typePath.circuitArtifact.circuitName, true);
@@ -134,6 +138,13 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
         content.join("\n"),
       );
     }
+
+    const pathToTypesExtensionFile = path.join(rootTypesDirPath, "hardhat.d.ts");
+
+    this._saveFileContent(
+      path.relative(path.join(this._projectRoot, this.getOutputTypesDir()), pathToTypesExtensionFile),
+      await this._genHardhatZkitTypeExtension(topLevelCircuits),
+    );
   }
 
   /**
@@ -141,8 +152,8 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
    *
    * Example:
    * ```ts
-   * import type * as BasicInAuthCircom from "./BasicInAuth.circom";
-   * export type { BasicInAuthCircom };
+   * import * as BasicInAuthCircom from "./BasicInAuth.circom";
+   * export { BasicInAuthCircom };
    * ```
    *
    * @param {string} directory - The directory for which the export declaration is generated.
@@ -152,7 +163,7 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
     const importDeclaration = ts.factory.createImportDeclaration(
       undefined,
       ts.factory.createImportClause(
-        true,
+        false,
         undefined,
         ts.factory.createNamespaceImport(ts.factory.createIdentifier(normalizeName(directory))),
       ),
@@ -160,7 +171,7 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
     );
     const exportDeclaration = ts.factory.createExportDeclaration(
       undefined,
-      true,
+      false,
       ts.factory.createNamedExports([
         ts.factory.createExportSpecifier(false, undefined, ts.factory.createIdentifier(normalizeName(directory))),
       ]),
@@ -174,7 +185,7 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
    *
    * Example:
    * ```ts
-   * export type * from "./Multiplier2";
+   * export * from "./Multiplier2";
    * ```
    *
    * @param {string} file - The file for which the export declaration is generated.
@@ -183,7 +194,7 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
   private _getExportDeclarationForFile(file: string): string {
     const exportDeclaration = ts.factory.createExportDeclaration(
       undefined,
-      true,
+      false,
       undefined,
       ts.factory.createStringLiteral(`./${file.replace(path.extname(file), "")}`),
     );

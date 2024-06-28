@@ -5,11 +5,21 @@ import prettier from "prettier";
 
 import BaseTSGenerator from "./BaseTSGenerator";
 
-import { CircuitArtifact, TemplateParams } from "../types";
+import { CircuitArtifact, TypeExtensionTemplateParams, WrapperTemplateParams } from "../types";
 
 import { SignalTypeNames, SignalVisibilityNames } from "../constants";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
+  protected async _genHardhatZkitTypeExtension(circuitNames: string[]): Promise<string> {
+    const template = fs.readFileSync(path.join(__dirname, "templates", "type-extension.ts.ejs"), "utf8");
+
+    const templateParams: TypeExtensionTemplateParams = {
+      circuitClassNames: circuitNames,
+    };
+
+    return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
+  }
+
   protected async _genCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {
     const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
@@ -37,8 +47,8 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       publicInputs.push(signal.name);
     }
 
-    const templateParams: TemplateParams = {
-      circuitClassName: `${circuitArtifact.circuitName}Circuit`,
+    const templateParams: WrapperTemplateParams = {
+      circuitClassName: this._getCircuitName(circuitArtifact),
       publicInputsInterfaceName: this._getInterfaceName(circuitArtifact, "Public"),
       publicInputs,
       privateInputs,
