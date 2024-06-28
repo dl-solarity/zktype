@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { expect, test, describe, beforeEach, afterEach } from "bun:test";
+import { expect } from "chai";
 
 import { generateAST } from "./helpers/generator";
 
@@ -42,60 +42,60 @@ describe("Circuit Artifact Generation", function () {
     }
   });
 
-  test("it should generate artifacts based on the AST files", async function () {
+  it("should generate artifacts based on the AST files", async function () {
     await artifactGenerator.generateCircuitArtifacts();
 
     for (const artifactPath of expectedGeneratedArtifacts) {
       const pathToCircuit = getPathToArtifact(artifactPath);
 
-      expect(fs.existsSync(pathToCircuit)).toBe(true);
+      expect(fs.existsSync(pathToCircuit)).to.be.true;
     }
   });
 
-  test("it should throw an error if the compiler version field is missing", async function () {
+  it("should throw an error if the compiler version field is missing", async function () {
     fs.cpSync("test/mocks/InvalidCompilerVersion.json", `${astDir}/InvalidCompilerVersion.json`);
 
-    expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
+    await expect(artifactGenerator.generateCircuitArtifacts()).to.be.rejectedWith(
       "The compiler version is missing in the circuit AST: test/fixture/InvalidCompilerVersion.circom",
     );
   });
 
-  test("it should throw an error if the name in the initialization block is missing", async function () {
+  it("should throw an error if the name in the initialization block is missing", async function () {
     fs.cpSync("test/mocks/InvalidInitializationBlockName.json", `${astDir}/InvalidInitializationBlockName.json`);
 
-    expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
+    await expect(artifactGenerator.generateCircuitArtifacts()).to.be.rejectedWith(
       "The initializations field of initialization block is missing or incomplete in the circuit AST: test/fixture/InvalidInitializationBlockName.circom",
     );
   });
 
-  test("it should throw an error if the main component is missing", async function () {
+  it("should throw an error if the main component is missing", async function () {
     fs.cpSync("test/mocks/InvalidMainComponent.json", `${astDir}/InvalidMainComponent.json`);
 
-    expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
+    await expect(artifactGenerator.generateCircuitArtifacts()).to.be.rejectedWith(
       "The main component is missing or incomplete in the circuit AST: test/fixture/InvalidMainComponent.circom",
     );
   });
 
-  test("it should throw an error if the id of the main component is missing", async function () {
+  it("should throw an error if the id of the main component is missing", async function () {
     fs.cpSync("test/mocks/InvalidMainComponentId.json", `${astDir}/InvalidMainComponentId.json`);
 
-    expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
+    await expect(artifactGenerator.generateCircuitArtifacts()).to.be.rejectedWith(
       "The main component id is missing in the circuit AST: test/fixture/InvalidMainComponentId.circom",
     );
   });
 
-  test("it should throw an error if the template block is missing", async function () {
+  it("should throw an error if the template block is missing", async function () {
     fs.cpSync("test/mocks/InvalidTemplateBlock.json", `${astDir}/InvalidTemplateBlock.json`);
 
-    expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
+    await expect(artifactGenerator.generateCircuitArtifacts()).to.be.rejectedWith(
       "The template for the circuit Multiplier2 could not be found.",
     );
   });
 
-  test("it should throw an error if the xtype of the initialization block is missing", async function () {
+  it("should throw an error if the xtype of the initialization block is missing", async function () {
     fs.cpSync("test/mocks/InvalidXTypeField.json", `${astDir}/InvalidXTypeField.json`);
 
-    expect(artifactGenerator.generateCircuitArtifacts()).rejects.toThrow(
+    await expect(artifactGenerator.generateCircuitArtifacts()).to.be.rejectedWith(
       "The initialization block xtype is missing in the circuit AST: test/fixture/InvalidXTypeField.circom",
     );
   });

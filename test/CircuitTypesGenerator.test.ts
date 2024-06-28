@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { expect, test, describe, afterEach, beforeEach } from "bun:test";
+import { expect } from "chai";
 
 import { generateAST } from "./helpers/generator";
 
@@ -32,23 +32,23 @@ describe("Circuit Types Generation", function () {
     }
   });
 
-  test("it should generate Circuit Types based on the Artifacts", async () => {
+  it("should generate Circuit Types based on the Artifacts", async () => {
     await circuitTypesGenerator.generateTypes();
 
     for (const fileTypePath of expectedTypes) {
       const pathToCircuit = getPathToGeneratedType(fileTypePath);
 
-      expect(fs.existsSync(pathToCircuit)).toBe(true);
+      expect(fs.existsSync(pathToCircuit)).to.be.true;
     }
   });
 
-  test("it should throw an error if the xtype of the initialization block is missing", async function () {
+  it("should throw an error if the xtype of the initialization block is missing", async function () {
     fs.cpSync(
       "test/mocks/InvalidInternalType.json",
       `${circuitTypesGenerator.getOutputArtifactsDir()}/InvalidInternalType.json`,
     );
 
-    expect(circuitTypesGenerator.generateTypes()).rejects.toThrow("Unsupported signal type: string");
+    await expect(circuitTypesGenerator.generateTypes()).to.be.rejectedWith("Unsupported signal type: string");
 
     fs.rmSync(`${circuitTypesGenerator.getOutputArtifactsDir()}/InvalidInternalType.json`);
   });

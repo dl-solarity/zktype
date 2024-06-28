@@ -9,18 +9,23 @@
   },
   "files": [
     "dist/src/",
-    "dist/bin/",
     "src/",
-    "bin/",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
     "prepare": "husky",
-    "build": "bunx tsc",
-    "test": "bun test",
+    "build": "tsc",
+    "test": "mocha --recursive 'test/**/*.ts' --exit",
+    "coverage": "nyc mocha --recursive 'test/**/*.ts' --exit",
     "lint-fix": "prettier --write '**/*.ts'",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
+  },
+  "nyc": {
+    "reporter": [
+      "html",
+      "text"
+    ]
   },
   "repository": {
     "type": "git",
@@ -39,16 +44,25 @@
   },
   "homepage": "https://github.com/dl-solarity/zktype#readme",
   "dependencies": {
-    "@distributedlab/circom2": "0.2.18-rc.2",
+    "ejs": "3.1.10",
     "typescript": "5.4.5"
   },
   "peerDependencies": {
     "@solarity/zkit": "^0.2.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.12",
+    "@distributedlab/circom2": "0.2.18-rc.2",
+    "@types/chai": "^4.3.12",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/mocha": "^10.0.6",
+    "chai": "^4.4.1",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^10.3.0",
+    "nyc": "^15.1.0",
     "circomlib": "^2.0.5",
     "husky": "^9.0.11",
+    "mocha": "^10.5.2",
+    "nyc": "^17.0.0",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2"
   }
