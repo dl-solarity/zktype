@@ -7,6 +7,11 @@ export interface ZKTypeConfig extends ArtifactGeneratorConfig {
 
 export interface ArtifactGeneratorConfig {
   /**
+   * The base path to the root directory of the project where circuits are stored.
+   */
+  basePath: string;
+
+  /**
    * An array of paths to the circuits' AST files.
    */
   circuitsASTPaths: string[];

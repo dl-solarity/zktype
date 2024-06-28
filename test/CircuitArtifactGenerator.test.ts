@@ -23,6 +23,7 @@ describe("Circuit Artifact Generation", function () {
   const inputDir = "test/fixture";
   const astDir = "test/cache/circuits-ast";
   const artifactGenerator = new CircuitArtifactGenerator({
+    basePath: "test/fixture",
     circuitsASTPaths: [
       "test/cache/circuits-ast/Basic.json",
       "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",

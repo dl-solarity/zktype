@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { findCommonPath, findProjectRoot } from "../utils";
+import { findProjectRoot } from "../utils";
 
 import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../constants";
 import {
@@ -54,26 +54,17 @@ export default class CircuitArtifactGenerator {
       this._cleanArtifacts();
     }
 
-    let commonPath = "";
-    const artifactsToSave: CircuitArtifact[] = [];
-
     for (const astFilePath of astFilePaths) {
       const circuitArtifact = await this.extractArtifact(astFilePath);
 
-      artifactsToSave.push(circuitArtifact);
-
-      commonPath = findCommonPath(commonPath, circuitArtifact.sourceName);
-    }
-
-    artifactsToSave.forEach((circuitArtifact) =>
       this._saveArtifact(
         {
           ...circuitArtifact,
-          basePath: commonPath,
+          basePath: this._circuitArtifactGeneratorConfig.basePath,
         },
-        commonPath,
-      ),
-    );
+        this._circuitArtifactGeneratorConfig.basePath,
+      );
+    }
   }
 
   /**

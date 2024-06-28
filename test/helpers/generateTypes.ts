@@ -5,6 +5,7 @@ import CircuitTypesGenerator from "../../src/core/CircuitTypesGenerator";
 const astDir = "test/cache/circuits-ast";
 
 const circuitTypesGenerator = new CircuitTypesGenerator({
+  basePath: "test/fixture",
   circuitsASTPaths: [
     "test/cache/circuits-ast/Basic.json",
     "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",
