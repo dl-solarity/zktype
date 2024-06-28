@@ -3,7 +3,6 @@
 ## [TBD]
  
 - Define a list of helper functions. Validation per input in circuit, conversions?
-- Do general testing.
 
 ## [v0.2.0]
 
