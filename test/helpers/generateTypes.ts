@@ -1,6 +1,6 @@
 import { generateAST } from "./generator";
 
-import CircuitTypesGenerator from "../../src/core/codegen/CircuitTypesGenerator";
+import CircuitTypesGenerator from "../../src/core/CircuitTypesGenerator";
 
 const astDir = "test/cache/circuits-ast";
 

@@ -7,7 +7,7 @@ import { generateAST } from "./helpers/generator";
 
 import { findProjectRoot } from "../src/utils";
 
-import CircuitTypesGenerator from "../src/core/codegen/CircuitTypesGenerator";
+import CircuitTypesGenerator from "../src/core/CircuitTypesGenerator";
 
 describe("Circuit Types Generation", function () {
   const expectedTypes = ["core/CredentialAtomicQueryMTPOnChainVoting.ts", "core/Multiplier2.ts"];

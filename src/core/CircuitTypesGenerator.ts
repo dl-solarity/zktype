@@ -5,9 +5,9 @@ import ts from "typescript";
 import ZkitTSGenerator from "./ZkitTSGenerator";
 import BaseTSGenerator from "./BaseTSGenerator";
 
-import { normalizeName } from "../../utils";
+import { normalizeName } from "../utils";
 
-import { CircuitArtifact, ArtifactWithPath } from "../../types";
+import { CircuitArtifact, ArtifactWithPath } from "../types";
 
 /**
  * `CircuitTypesGenerator` is need for generating TypeScript interfaces based on circuit artifacts.

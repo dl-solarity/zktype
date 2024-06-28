@@ -5,9 +5,9 @@ import prettier from "prettier";
 
 import BaseTSGenerator from "./BaseTSGenerator";
 
-import { CircuitArtifact, TemplateParams } from "../../types";
+import { CircuitArtifact, TemplateParams } from "../types";
 
-import { SignalTypeNames, SignalVisibilityNames } from "../../constants";
+import { SignalTypeNames, SignalVisibilityNames } from "../constants";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {

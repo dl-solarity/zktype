@@ -32,6 +32,7 @@ export default class <%= circuitClassName %> extends CircuitZKit {
 
   public async generateProof(inputs: <%= privateInputsInterfaceName %>): Promise<<%= proofInterfaceName %>> {
     const proof = await super.generateProof(inputs as any);
+
     return {
       proof: proof.proof,
       publicSignals: this._normalizePublicSignals(proof.publicSignals),
@@ -54,6 +55,7 @@ export default class <%= circuitClassName %> extends CircuitZKit {
 
   private _normalizePublicSignals(publicSignals: PublicSignals): <%= publicInputsInterfaceName %> {
     const signalNames = this._getSignalNames();
+
     return signalNames.reduce((acc: any, signalName, index) => {
       acc[signalName] = publicSignals[index];
       return acc;
@@ -62,9 +64,8 @@ export default class <%= circuitClassName %> extends CircuitZKit {
 
   private _denormalizePublicSignals(publicSignals: <%= publicInputsInterfaceName %>): PublicSignals {
     const signalNames = this._getSignalNames();
-    return signalNames.map((signalName) => {
-      return (publicSignals as any)[signalName];
-    });
+
+    return signalNames.map((signalName) => (publicSignals as any)[signalName]);
   }
 
   private _getSignalNames(): string[] {

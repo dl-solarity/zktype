@@ -2,11 +2,11 @@ import fs from "fs";
 import path from "path";
 import ts from "typescript";
 
-import CircuitArtifactGenerator from "../CircuitArtifactGenerator";
+import CircuitArtifactGenerator from "./CircuitArtifactGenerator";
 
-import { CircuitArtifact, ZKTypeConfig } from "../../types";
+import { CircuitArtifact, ZKTypeConfig } from "../types";
 
-import { findProjectRoot } from "../../utils";
+import { findProjectRoot } from "../utils";
 
 /**
  * `BaseTSGenerator` is a base class for all TypeScript generators.
@@ -63,23 +63,6 @@ export default class BaseTSGenerator {
     fs.writeFileSync(
       path.join(this._projectRoot, this.getOutputTypesDir(), typePath),
       [this._getPreamble(), content].join("\n\n"),
-    );
-  }
-
-  /**
-   * Generates the interface declaration for given name and properties.
-   *
-   * @param {string} name - The name of the interface.
-   * @param {ts.PropertySignature[]} properties - The properties of the interface.
-   * @returns {ts.InterfaceDeclaration} The generated interface declaration.
-   */
-  protected _getInterfaceDeclaration(name: string, properties: ts.PropertySignature[]): ts.InterfaceDeclaration {
-    return ts.factory.createInterfaceDeclaration(
-      [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      name,
-      undefined,
-      undefined,
-      properties,
     );
   }
 

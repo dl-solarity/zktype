@@ -6,7 +6,7 @@ import Multiplier2Circuit from "../generated-types/circuits/core/Multiplier2";
 
 import { generateAST } from "./helpers/generator";
 
-import CircuitTypesGenerator from "../src/core/codegen/CircuitTypesGenerator";
+import CircuitTypesGenerator from "../src/core/CircuitTypesGenerator";
 
 describe("Circuit Proof Generation", function () {
   const astDir = "test/cache/circuits-ast";
