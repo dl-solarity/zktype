@@ -1,37 +1,36 @@
 import fs from "fs";
 import path from "path";
 
+// @ts-ignore
+import * as snarkjs from "snarkjs";
+
+const { execSync } = require("child_process");
+
 const { CircomRunner, bindings } = require("@distributedlab/circom2");
 
-import { findProjectRoot } from "../utils";
+import { CircuitAST } from "../../src";
 
-import { CircuitAST } from "../types";
+import { findProjectRoot } from "../../src/utils";
 
 /**
- * `CircuitASTGenerator` serves as an interface to the Circom compiler for the first step in the circuit types generation process.
+ * `CircuitCompiler` serves as an interface to the Circom compiler for the first step in the circuit types generation process.
  * Its primary function is to generate the Abstract Syntax Tree (AST) for a given circuit file.
  *
  * It is designed to work independently of any filtering logic, acting solely as a conduit to the compiler.
- * @todo Consider using a class for filtering which circuits to compile for caching purposes.
- * @todo Add ability to provide options for the Circom compiler (in case if there are plans to extend functionality of ast generation).
  */
-export default class CircuitASTGenerator {
-  /**
-   * Directory to store all generated files during the AST generation process.
-   */
-  public static readonly TEMP_DIR = "cache/circuits-ast/";
-
+export default class CircuitCompiler {
   public readonly projectRoot: string;
 
   private readonly _wasmBytes: Buffer;
 
   constructor(
+    private outputDir: string,
     private defaultDir: string,
     private quiet: boolean = false,
   ) {
     this.projectRoot = findProjectRoot(process.cwd());
 
-    const tempDirPath = path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR);
+    const tempDirPath = path.join(this.projectRoot, this.outputDir);
 
     if (!fs.existsSync(tempDirPath)) {
       fs.mkdirSync(tempDirPath, { recursive: true });
@@ -81,11 +80,65 @@ export default class CircuitASTGenerator {
     }
   }
 
+  public async compileCircuit(filePath: string, outputDir: string): Promise<boolean> {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`The specified circuit file does not exist: ${filePath}`);
+    }
+
+    const circuitName = this._extractCircuitName(filePath);
+
+    fs.mkdirSync(path.join(this.projectRoot, outputDir), { recursive: true });
+
+    const args = [
+      path.join(this.projectRoot, filePath),
+      "--output",
+      path.join(this.projectRoot, outputDir),
+      "--wasm",
+      "--json",
+      "--r1cs",
+    ];
+
+    try {
+      await this._getCircomRunner(args, true).execute(this._wasmBytes);
+
+      await this._generateZKeyFile(outputDir, circuitName);
+      await this._generateVKeyFile(outputDir, circuitName);
+
+      return true;
+    } catch (error) {
+      await this._displayCircuitGenerationError(circuitName, args);
+
+      console.error(error);
+
+      return false;
+    }
+  }
+
+  private async _generateZKeyFile(outputDir: string, circuitName: string) {
+    const r1csFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.r1cs`;
+    const zKeyFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.zkey`;
+
+    await snarkjs.zKey.newZKey(
+      r1csFile,
+      path.join(this.projectRoot, "test/helpers/powersOfTau28_hez_final_08.ptau"),
+      zKeyFile,
+    );
+  }
+
+  private async _generateVKeyFile(outputDir: string, circuitName: string) {
+    const zkeyFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.zkey`;
+    const vKeyFile = `${path.join(this.projectRoot, outputDir)}/${circuitName}.vkey.json`;
+
+    const vKeyData = await snarkjs.zKey.exportVerificationKey(zkeyFile);
+
+    fs.writeFileSync(vKeyFile, JSON.stringify(vKeyData));
+  }
+
   /**
    * Cleans up all previously generated circuit ASTs.
    */
   public cleanupCircuitASTs(): void {
-    fs.rmSync(path.join(this.projectRoot, CircuitASTGenerator.TEMP_DIR), { recursive: true, force: true });
+    fs.rmSync(path.join(this.projectRoot, this.outputDir), { recursive: true, force: true });
   }
 
   /**
@@ -99,7 +152,7 @@ export default class CircuitASTGenerator {
   private _getFutureASTFilePath(sourcePath: string, filename: string): string {
     const jsonFilename = filename.endsWith(".json") ? filename : `${filename}.json`;
 
-    const filePath = path.join(CircuitASTGenerator.TEMP_DIR, sourcePath, jsonFilename);
+    const filePath = path.join(this.outputDir, sourcePath, jsonFilename);
 
     return path.resolve(filePath);
   }
@@ -153,7 +206,7 @@ export default class CircuitASTGenerator {
    * @param {string} sourcePath - The source path of the circuit file.
    */
   private _createCircuitASTDirectory(sourcePath: string): void {
-    const fullPath = path.join(CircuitASTGenerator.TEMP_DIR, sourcePath);
+    const fullPath = path.join(this.outputDir, sourcePath);
 
     fs.mkdirSync(fullPath, { recursive: true });
   }

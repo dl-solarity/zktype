@@ -6,6 +6,7 @@ import { SignalType, SignalVisibility } from "./ast";
  * @param {string} _format - The format version of the circuit artifact.
  * @param {string} circuitName - The name of the main component in the circuit.
  * @param {string} sourceName - The circuit file path relative to the project root.
+ * @param {string} basePath - The root directory of the project for circuits.
  * @param {string} compilerVersion - The version of the Circom compiler specified in the circuit.
  * @param {Signal[]} signals - An array of `input` and `output` signals used in the circuit.
  */
@@ -13,6 +14,7 @@ export interface CircuitArtifact {
   _format: string;
   circuitName: string;
   sourceName: string;
+  basePath: string;
   compilerVersion: string;
   signals: Signal[];
 }
@@ -24,10 +26,12 @@ export interface CircuitArtifact {
  * @param {SignalType} type - The type of the signal (possible values: `Input`, `Output`).
  * @param {string} visibility - The visibility of the signal (possible values: `public`, `private`).
  * @param {string} internalType - The internal type of the signal (only possible value: `bigint`).
+ * @param {number} dimensions - The number of dimensions of the signal. If the signal is a scalar, the value is `0`.
  */
 export interface Signal {
   name: string;
   type: SignalType;
   visibility: SignalVisibility;
   internalType: string;
+  dimensions: number;
 }

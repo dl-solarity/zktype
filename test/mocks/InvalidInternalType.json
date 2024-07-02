@@ -6,12 +6,12 @@
   "signals": [
     {
       "type": "Input",
-      "internalType": "bigint",
+      "internalType": "<number-like>",
       "name": "in1"
     },
     {
       "type": "Input",
-      "internalType": "bigint",
+      "internalType": "<number-like>",
       "name": "in2"
     },
     {

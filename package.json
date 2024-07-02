@@ -1,27 +1,32 @@
 {
   "name": "@solarity/zktype",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Unleash TypeScript bindings for Circom circuits",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "bin": "dist/bin/zktype.js",
   "engines": {
     "node": ">=18"
   },
   "files": [
     "dist/src/",
-    "dist/bin/",
     "src/",
-    "bin/",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
     "prepare": "husky",
-    "build": "bunx tsc",
-    "test": "bun test",
+    "prepare-test": "ts-node ./test/helpers/generateTypes.ts",
+    "build": "npm run prepare-test && tsc",
+    "test": "npm run prepare-test && mocha --recursive 'test/**/*.ts' --exit",
+    "coverage": "prepare-test && nyc mocha --recursive 'test/**/*.ts' --exit",
     "lint-fix": "prettier --write '**/*.ts'",
     "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
+  },
+  "nyc": {
+    "reporter": [
+      "html",
+      "text"
+    ]
   },
   "repository": {
     "type": "git",
@@ -40,16 +45,27 @@
   },
   "homepage": "https://github.com/dl-solarity/zktype#readme",
   "dependencies": {
-    "@distributedlab/circom2": "0.2.18-rc.2",
-    "commander": "12.0.0",
-    "please-upgrade-node": "3.2.0",
+    "ejs": "3.1.10",
+    "prettier": "3.3.2",
     "typescript": "5.4.5"
   },
+  "peerDependencies": {
+    "@solarity/zkit": "^0.2.0"
+  },
   "devDependencies": {
-    "@types/bun": "^1.0.12",
+    "@distributedlab/circom2": "0.2.18-rc.2",
+    "@types/chai": "^4.3.12",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/ejs": "^3.1.5",
+    "@types/mocha": "^10.0.6",
+    "chai": "^4.4.1",
+    "chai-as-promised": "^7.1.1",
     "circomlib": "^2.0.5",
+    "hardhat": "^2.22.5",
     "husky": "^9.0.11",
-    "prettier": "^3.2.5",
+    "mocha": "^10.5.2",
+    "nyc": "^17.0.0",
+    "snarkjs": "^0.7.4",
     "ts-node": "^10.9.2"
   }
 }

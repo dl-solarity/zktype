@@ -2,15 +2,12 @@ import fs from "fs";
 import path from "path";
 import ts from "typescript";
 
+import ZkitTSGenerator from "./ZkitTSGenerator";
 import BaseTSGenerator from "./BaseTSGenerator";
 
-import CircuitArtifactGenerator from "../CircuitArtifactGenerator";
+import { normalizeName } from "../utils";
 
-import { normalizeName } from "../../utils";
-
-import { CircuitArtifact, Signal, ArtifactWithPath } from "../../types";
-
-import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../../constants";
+import { CircuitArtifact, ArtifactWithPath } from "../types";
 
 /**
  * `CircuitTypesGenerator` is need for generating TypeScript interfaces based on circuit artifacts.
@@ -20,7 +17,28 @@ import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../../cons
  *
  * Note: Currently, all signals are considered as `bigint` type.
  */
-export default class CircuitTypesGenerator extends BaseTSGenerator {
+export default class CircuitTypesGenerator extends ZkitTSGenerator {
+  /**
+   * Returns an object that represents the circuit class based on the circuit name.
+   */
+  public async getCircuitObject(circuitName: string): Promise<any> {
+    const pathToGeneratedTypes = path.join(this._projectRoot, this.getOutputTypesDir());
+
+    if (this._nameToObjectNameMap.size === 0) {
+      throw new Error("No circuit types have been generated.");
+    }
+
+    const module = await import(pathToGeneratedTypes);
+
+    const circuitObjectPath = this._nameToObjectNameMap.get(circuitName);
+
+    if (!circuitObjectPath) {
+      throw new Error(`Circuit ${circuitName} type does not exist.`);
+    }
+
+    return circuitObjectPath.split(".").reduce((acc, key) => acc[key], module as any);
+  }
+
   /**
    * Generates TypeScript interfaces based on the circuit artifacts.
    *
@@ -33,11 +51,11 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * @returns {Promise<void>} A promise that resolves when all interfaces have been generated.
    */
   public async generateTypes(): Promise<void> {
-    this._generateBaseTypes();
+    await this._artifactsGenerator.generateCircuitArtifacts();
 
     const circuitArtifacts = this._fetchCircuitArtifacts();
 
-    fs.mkdirSync(CircuitTypesGenerator.TYPES_DIR, { recursive: true });
+    fs.mkdirSync(this.getOutputTypesDir(), { recursive: true });
 
     const isNameExist: Map<string, boolean> = new Map();
     const typePathsToResolve: ArtifactWithPath[] = [];
@@ -49,32 +67,35 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
       isNameExist.set(circuitName, true);
 
       let circuitTypePath = path
-        .join(BaseTSGenerator.DOMAIN_SEPARATOR, circuitArtifacts[i].sourceName.replace(this._defaultDir, ""))
+        .join(
+          BaseTSGenerator.DOMAIN_SEPARATOR,
+          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
+        )
         .replace(path.basename(circuitArtifacts[i].sourceName), `${circuitName}.ts`);
 
       if (isNameAlreadyExist) {
         circuitTypePath = path.join(
           BaseTSGenerator.DOMAIN_SEPARATOR,
-          circuitArtifacts[i].sourceName.replace(this._defaultDir, ""),
+          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
           `${circuitName}.ts`,
         );
       }
 
-      fs.mkdirSync(path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR, path.dirname(circuitTypePath)), {
+      fs.mkdirSync(path.join(this._projectRoot, this.getOutputTypesDir(), path.dirname(circuitTypePath)), {
         recursive: true,
       });
 
-      const preparedNode = this._returnTSDefinitionByArtifact(circuitArtifacts[i], circuitTypePath);
+      const preparedNode = await this._returnTSDefinitionByArtifact(circuitArtifacts[i]);
 
       this._saveFileContent(circuitTypePath, preparedNode);
 
       typePathsToResolve.push({
         circuitArtifact: circuitArtifacts[i],
-        pathToGeneratedFile: path.join(CircuitTypesGenerator.TYPES_DIR, circuitTypePath),
+        pathToGeneratedFile: path.join(this.getOutputTypesDir(), circuitTypePath),
       });
     }
 
-    this._resolveTypePaths(typePathsToResolve);
+    await this._resolveTypePaths(typePathsToResolve);
   }
 
   /**
@@ -82,17 +103,21 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    *
    * @param {ArtifactWithPath[]} typePaths - The paths to the generated files and the corresponding circuit artifacts.
    */
-  private _resolveTypePaths(typePaths: ArtifactWithPath[]): void {
-    const rootTypesDirPath = path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR);
+  private async _resolveTypePaths(typePaths: ArtifactWithPath[]): Promise<void> {
+    const rootTypesDirPath = path.join(this._projectRoot, this.getOutputTypesDir());
     const pathToMainIndexFile = path.join(rootTypesDirPath, "index.ts");
 
     // index file path => its content
     const indexFilesMap: Map<string, string[]> = new Map();
     const isCircuitNameExist: Map<string, boolean> = new Map();
 
+    const topLevelCircuits: {
+      [circuitName: string]: ArtifactWithPath[];
+    } = {};
+
     for (const typePath of typePaths) {
       const levels: string[] = typePath.pathToGeneratedFile
-        .replace(CircuitTypesGenerator.TYPES_DIR, "")
+        .replace(this.getOutputTypesDir(), "")
         .split(path.sep)
         .filter((level) => level !== "");
 
@@ -126,14 +151,26 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
       }
 
       isCircuitNameExist.set(typePath.circuitArtifact.circuitName, true);
+
+      topLevelCircuits[typePath.circuitArtifact.circuitName] =
+        topLevelCircuits[typePath.circuitArtifact.circuitName] === undefined
+          ? [typePath]
+          : [...topLevelCircuits[typePath.circuitArtifact.circuitName], typePath];
     }
 
     for (const [absolutePath, content] of indexFilesMap) {
       this._saveFileContent(
-        path.relative(path.join(this._projectRoot, CircuitTypesGenerator.TYPES_DIR), absolutePath),
+        path.relative(path.join(this._projectRoot, this.getOutputTypesDir()), absolutePath),
         content.join("\n"),
       );
     }
+
+    const pathToTypesExtensionFile = path.join(rootTypesDirPath, "hardhat.d.ts");
+
+    this._saveFileContent(
+      path.relative(path.join(this._projectRoot, this.getOutputTypesDir()), pathToTypesExtensionFile),
+      await this._genHardhatZkitTypeExtension(topLevelCircuits),
+    );
   }
 
   /**
@@ -141,8 +178,8 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    *
    * Example:
    * ```ts
-   * import type * as BasicInAuthCircom from "./BasicInAuth.circom";
-   * export type { BasicInAuthCircom };
+   * import * as BasicInAuthCircom from "./BasicInAuth.circom";
+   * export { BasicInAuthCircom };
    * ```
    *
    * @param {string} directory - The directory for which the export declaration is generated.
@@ -152,7 +189,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
     const importDeclaration = ts.factory.createImportDeclaration(
       undefined,
       ts.factory.createImportClause(
-        true,
+        false,
         undefined,
         ts.factory.createNamespaceImport(ts.factory.createIdentifier(normalizeName(directory))),
       ),
@@ -160,7 +197,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
     );
     const exportDeclaration = ts.factory.createExportDeclaration(
       undefined,
-      true,
+      false,
       ts.factory.createNamedExports([
         ts.factory.createExportSpecifier(false, undefined, ts.factory.createIdentifier(normalizeName(directory))),
       ]),
@@ -174,7 +211,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    *
    * Example:
    * ```ts
-   * export type * from "./Multiplier2";
+   * export * from "./Multiplier2";
    * ```
    *
    * @param {string} file - The file for which the export declaration is generated.
@@ -183,7 +220,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
   private _getExportDeclarationForFile(file: string): string {
     const exportDeclaration = ts.factory.createExportDeclaration(
       undefined,
-      true,
+      false,
       undefined,
       ts.factory.createStringLiteral(`./${file.replace(path.extname(file), "")}`),
     );
@@ -205,76 +242,10 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * ```
    *
    * @param {CircuitArtifact} circuitArtifact - The circuit artifact for which the TypeScript interfaces are generated.
-   * @param {string} interfacePathLocation - The path to the interface file.
    * @returns {string} The relative to the TYPES_DIR path to the generated file.
    */
-  private _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact, interfacePathLocation: string): string {
-    const generateProofInterfaceContent = this._getInterfaceForProofGeneration(circuitArtifact);
-    const verifyProofInterfaceContent = this._getInterfaceForProofVerification(circuitArtifact);
-
-    return [
-      this._getImportTypesDeclarationContent(interfacePathLocation),
-      generateProofInterfaceContent,
-      verifyProofInterfaceContent,
-    ].join("\n\n");
-  }
-
-  /**
-   * Generates the interface declaration for the Verify Proof parameters.
-   */
-  private _getInterfaceForProofVerification(circuitArtifact: CircuitArtifact): string {
-    const verifyProofInterfaceName = this._getInterfaceName(circuitArtifact, "Public");
-
-    let outputCounter: number = 0;
-    const verifyProofInterfaceProperties: ts.PropertySignature[] = [];
-
-    for (const signal of circuitArtifact.signals) {
-      if (signal.visibility === SignalVisibilityNames.Private) {
-        continue;
-      }
-
-      if (signal.type === SignalTypeNames.Output) {
-        verifyProofInterfaceProperties.splice(
-          outputCounter,
-          0,
-          ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal)),
-        );
-
-        outputCounter++;
-        continue;
-      }
-
-      verifyProofInterfaceProperties.push(
-        ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal)),
-      );
-    }
-
-    const verifyProofInterface = this._getInterfaceDeclaration(
-      verifyProofInterfaceName,
-      verifyProofInterfaceProperties,
-    );
-
-    return this._getNodeContent(verifyProofInterface);
-  }
-
-  /**
-   * Generates the interface declaration for the Generate Proof parameters.
-   */
-  private _getInterfaceForProofGeneration(circuitArtifact: CircuitArtifact): string {
-    const generateProofInterfaceName = this._getInterfaceName(circuitArtifact, "Private");
-
-    const generateProofInterfaceProperties = circuitArtifact.signals
-      .filter((signal) => signal.type != SignalTypeNames.Output)
-      .map((signal) => {
-        return ts.factory.createPropertySignature(undefined, signal.name, undefined, this._getSignalTypeNode(signal));
-      });
-
-    const generateProofInterface = this._getInterfaceDeclaration(
-      generateProofInterfaceName,
-      generateProofInterfaceProperties,
-    );
-
-    return this._getNodeContent(generateProofInterface);
+  private async _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact): Promise<string> {
+    return await this._genCircuitWrapperClassContent(circuitArtifact);
   }
 
   /**
@@ -285,7 +256,7 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
    * @returns {CircuitArtifact[]} The fetched circuit artifacts.
    */
   private _fetchCircuitArtifacts(): CircuitArtifact[] {
-    const files = fs.readdirSync(CircuitArtifactGenerator.ARTIFACTS_DIR, { recursive: true });
+    const files = fs.readdirSync(this._artifactsGenerator.getOutputArtifactsDir(), { recursive: true });
 
     const artifacts: CircuitArtifact[] = [];
 
@@ -296,28 +267,11 @@ export default class CircuitTypesGenerator extends BaseTSGenerator {
         continue;
       }
 
-      artifacts.push(JSON.parse(fs.readFileSync(path.join(CircuitArtifactGenerator.ARTIFACTS_DIR, filePath), "utf-8")));
+      artifacts.push(
+        JSON.parse(fs.readFileSync(path.join(this._artifactsGenerator.getOutputArtifactsDir(), filePath), "utf-8")),
+      );
     }
 
     return artifacts;
-  }
-
-  /**
-   * This function binds internal signal types to TypeScript types.
-   *
-   * Currently only bigint is supported as mostly within the circuits we are dealing with numbers.
-   *
-   * @param {Signal} signal - The signal for which the TypeScript type is generated.
-   * @returns {ts.TypeNode} The TypeScript type node.
-   */
-  private _getSignalTypeNode(signal: Signal): ts.TypeNode {
-    switch (signal.internalType) {
-      case InternalType.BigInt:
-        return ts.factory.createTypeReferenceNode(this._defaultFieldName);
-      case InternalType.BigIntArray:
-        return ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(this._defaultFieldName));
-      default:
-        throw new Error(`Unsupported signal type: ${signal.internalType}`);
-    }
   }
 }
