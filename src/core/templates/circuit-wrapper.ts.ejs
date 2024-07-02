@@ -53,8 +53,16 @@ export class <%= circuitClassName %> extends CircuitZKit {
     });
   }
 
+  public getSignalNames(): string[] {
+    return [
+        <% for (let i = 0; i < publicInputs.length; i++) { -%>
+            "<%= publicInputs[i].name %>",
+        <% } -%>
+    ];
+  }
+
   private _normalizePublicSignals(publicSignals: PublicSignals): <%= publicInputsInterfaceName %> {
-    const signalNames = this._getSignalNames();
+    const signalNames = this.getSignalNames();
 
     return signalNames.reduce((acc: any, signalName, index) => {
       acc[signalName] = publicSignals[index];
@@ -63,17 +71,9 @@ export class <%= circuitClassName %> extends CircuitZKit {
   }
 
   private _denormalizePublicSignals(publicSignals: <%= publicInputsInterfaceName %>): PublicSignals {
-    const signalNames = this._getSignalNames();
+    const signalNames = this.getSignalNames();
 
     return signalNames.map((signalName) => (publicSignals as any)[signalName]);
-  }
-
-  private _getSignalNames(): string[] {
-    return [
-        <% for (let i = 0; i < publicInputs.length; i++) { -%>
-            "<%= publicInputs[i].name %>",
-        <% } -%>
-    ];
   }
 }
 

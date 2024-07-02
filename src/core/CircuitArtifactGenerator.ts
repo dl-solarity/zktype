@@ -50,10 +50,6 @@ export default class CircuitArtifactGenerator {
   public async generateCircuitArtifacts(): Promise<void> {
     const astFilePaths = this._circuitArtifactGeneratorConfig.circuitsASTPaths;
 
-    if (this._circuitArtifactGeneratorConfig.clean) {
-      this._cleanArtifacts();
-    }
-
     for (const astFilePath of astFilePaths) {
       const circuitArtifact = await this.extractArtifact(astFilePath);
 
@@ -122,6 +118,17 @@ export default class CircuitArtifactGenerator {
   }
 
   /**
+   * Cleans the artifacts directory by removing all files and subdirectories.
+   */
+  public cleanArtifacts(): void {
+    const artifactsDir = path.join(this._projectRoot, this.getOutputArtifactsDir());
+
+    if (fs.existsSync(artifactsDir)) {
+      fs.rmSync(artifactsDir, { recursive: true, force: true });
+    }
+  }
+
+  /**
    * Saves the circuit artifact to a JSON file.
    *
    * @param {CircuitArtifact} artifact - The circuit artifact to be saved.
@@ -135,17 +142,6 @@ export default class CircuitArtifactGenerator {
     fs.mkdirSync(circuitArtifactPath.replace(path.basename(circuitArtifactPath), ""), { recursive: true });
 
     fs.writeFileSync(circuitArtifactPath, JSON.stringify(artifact, null, 2));
-  }
-
-  /**
-   * Cleans the artifacts directory by removing all files and subdirectories.
-   */
-  private _cleanArtifacts(): void {
-    const artifactsDir = path.join(this._projectRoot, this.getOutputArtifactsDir());
-
-    if (fs.existsSync(artifactsDir)) {
-      fs.rmSync(artifactsDir, { recursive: true, force: true });
-    }
   }
 
   /**

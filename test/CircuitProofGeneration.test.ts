@@ -1,8 +1,7 @@
+import fs from "fs";
 import { expect } from "chai";
 
 import { CircuitZKitConfig } from "@solarity/zkit";
-
-import Multiplier2Circuit from "../generated-types/circuits/core/Multiplier2";
 
 import { generateAST } from "./helpers/generator";
 
@@ -53,5 +52,26 @@ describe("Circuit Proof Generation", function () {
     await expect(circuitTypesGenerator.getCircuitObject("Multiplier2")).to.be.rejectedWith(
       "Circuit Multiplier2 type does not exist.",
     );
+  });
+
+  it("should regenerate type if the circuit is updated", async () => {
+    const initialFile = fs.readFileSync(
+      "generated-types/circuits/core/auth/BasicInAuth.circom/Multiplier2.ts",
+      "utf-8",
+    );
+    const initialFileHash = require("crypto").createHash("sha256").update(initialFile).digest("hex");
+
+    fs.rmSync("test/cache/circuits-ast/auth/BasicInAuth.json", { recursive: true, force: true });
+    fs.copyFileSync("test/mocks/BasicInAuth.json", "test/cache/circuits-ast/auth/BasicInAuth.json");
+
+    await circuitTypesGenerator.generateTypes();
+
+    const regeneratedFile = fs.readFileSync(
+      "generated-types/circuits/core/auth/BasicInAuth.circom/Multiplier2.ts",
+      "utf-8",
+    );
+    const regeneratedFileHash = require("crypto").createHash("sha256").update(regeneratedFile).digest("hex");
+
+    expect(initialFileHash).to.not.equal(regeneratedFileHash);
   });
 });

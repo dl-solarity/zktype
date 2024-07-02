@@ -32,7 +32,6 @@ ZKTypeConfig = {
   basePath: string;
   circuitsASTPaths: string[];
   outputArtifactsDir?: string;
-  clean?: boolean;
   outputTypesDir?: string;
 };
 ```
@@ -43,8 +42,6 @@ This config contains all the information required to generate TypeScript binding
 - `circuitsASTPaths` - Array of paths to the circuits' AST files.
 - `outputArtifactsDir` - Path to the directory where the generated artifacts will be stored.
     - Optional. Default: `artifacts/circuits`.
-- `clean` - Flag indicating whether the artifacts should be cleaned up before generating new ones.
-    - Optional. Default: `false`.
 - `outputTypesDir` - Path to the directory where the generated types will be stored.
     - Optional. Default: `generated-types/circuits`.
 

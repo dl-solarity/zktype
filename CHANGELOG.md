@@ -12,6 +12,7 @@
 - Added generation of the Hardhat runtime extension file for circuits
 - Added a helper function to return the circuit object from a given name
 - Changed the ArtifactGeneratorConfig to accept an array of paths to circuit ASTs.
+- Deleted automatic artifacts clean up.
 
 ## [v0.1.1]
 

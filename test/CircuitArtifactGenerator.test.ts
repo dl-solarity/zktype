@@ -32,7 +32,6 @@ describe("Circuit Artifact Generation", function () {
       "test/cache/circuits-ast/auth/BasicInAuth.json",
     ],
     outputArtifactsDir: defaultCircuitArtifactGeneratorConfig.outputArtifactsDir,
-    clean: defaultCircuitArtifactGeneratorConfig.clean,
   });
 
   function getPathToArtifact(artifactPath: string) {
