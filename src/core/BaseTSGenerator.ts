@@ -100,7 +100,19 @@ export default class BaseTSGenerator {
    * @returns {string} The extracted circuit name.
    */
   protected _getCircuitName(circuitArtifact: CircuitArtifact): string {
-    return `${circuitArtifact.circuitName.replace(path.extname(circuitArtifact.circuitName), "")}Circuit`;
+    return `${circuitArtifact.circuitName.replace(path.extname(circuitArtifact.circuitName), "")}`;
+  }
+
+  /**
+   * Returns the full circuit name.
+   *
+   * The full circuit name is a combination of the source name and the circuit name, separated by a colon.
+   *
+   * @param {CircuitArtifact} circuitArtifact - The circuit artifact from which the full circuit name is extracted.
+   * @returns {string} The full circuit name.
+   */
+  protected _getFullCircuitName(circuitArtifact: CircuitArtifact): string {
+    return `${circuitArtifact.sourceName}:${this._getCircuitName(circuitArtifact)}`;
   }
 
   /**

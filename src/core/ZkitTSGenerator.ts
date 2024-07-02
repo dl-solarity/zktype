@@ -5,16 +5,68 @@ import prettier from "prettier";
 
 import BaseTSGenerator from "./BaseTSGenerator";
 
-import { CircuitArtifact, Inputs, TypeExtensionTemplateParams, WrapperTemplateParams } from "../types";
+import {
+  ArtifactWithPath,
+  CircuitArtifact,
+  CircuitClass,
+  Inputs,
+  TypeExtensionTemplateParams,
+  WrapperTemplateParams,
+} from "../types";
 
+import { normalizeName } from "../utils";
 import { SignalTypeNames, SignalVisibilityNames } from "../constants";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
-  protected async _genHardhatZkitTypeExtension(circuitNames: string[]): Promise<string> {
+  protected _nameToObjectNameMap: Map<string, string> = new Map();
+
+  protected async _genHardhatZkitTypeExtension(circuits: {
+    [circuitName: string]: ArtifactWithPath[];
+  }): Promise<string> {
     const template = fs.readFileSync(path.join(__dirname, "templates", "type-extension.ts.ejs"), "utf8");
 
+    const circuitClasses: CircuitClass[] = [];
+
+    const keys = Object.keys(circuits);
+
+    const outputTypesDir = this.getOutputTypesDir();
+
+    for (let i = 0; i < keys.length; i++) {
+      const artifacts = circuits[keys[i]];
+
+      if (artifacts.length === 1) {
+        circuitClasses.push({
+          name: this._getCircuitName(artifacts[0].circuitArtifact),
+          object: this._getCircuitName(artifacts[0].circuitArtifact),
+        });
+
+        this._nameToObjectNameMap.set(
+          this._getCircuitName(artifacts[0].circuitArtifact),
+          this._getCircuitName(artifacts[0].circuitArtifact),
+        );
+
+        continue;
+      }
+
+      for (const artifact of artifacts) {
+        const objectName = path
+          .normalize(artifact.pathToGeneratedFile.replace(outputTypesDir, ""))
+          .split(path.sep)
+          .filter((level) => level !== "")
+          .map((level, index, array) => (index !== array.length - 1 ? normalizeName(level) : level.replace(".ts", "")))
+          .join(".");
+
+        circuitClasses.push({
+          name: this._getFullCircuitName(artifact.circuitArtifact),
+          object: objectName,
+        });
+
+        this._nameToObjectNameMap.set(this._getFullCircuitName(artifact.circuitArtifact), objectName);
+      }
+    }
+
     const templateParams: TypeExtensionTemplateParams = {
-      circuitClassNames: circuitNames,
+      circuitClasses,
     };
 
     return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });

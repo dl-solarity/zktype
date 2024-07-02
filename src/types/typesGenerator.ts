@@ -19,6 +19,11 @@ export interface WrapperTemplateParams {
   circuitClassName: string;
 }
 
+export interface CircuitClass {
+  name: string;
+  object: string;
+}
+
 export interface TypeExtensionTemplateParams {
-  circuitClassNames: string[];
+  circuitClasses: CircuitClass[];
 }

@@ -24,9 +24,19 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
   public async getCircuitObject(circuitName: string): Promise<any> {
     const pathToGeneratedTypes = path.join(this._projectRoot, this.getOutputTypesDir());
 
+    if (this._nameToObjectNameMap.size === 0) {
+      throw new Error("No circuit types have been generated.");
+    }
+
     const module = await import(pathToGeneratedTypes);
 
-    return module[circuitName];
+    const circuitObjectPath = this._nameToObjectNameMap.get(circuitName);
+
+    if (!circuitObjectPath) {
+      throw new Error(`Circuit ${circuitName} type does not exist.`);
+    }
+
+    return circuitObjectPath.split(".").reduce((acc, key) => acc[key], module as any);
   }
 
   /**
@@ -101,7 +111,9 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
     const indexFilesMap: Map<string, string[]> = new Map();
     const isCircuitNameExist: Map<string, boolean> = new Map();
 
-    const topLevelCircuits: string[] = [];
+    const topLevelCircuits: {
+      [circuitName: string]: ArtifactWithPath[];
+    } = {};
 
     for (const typePath of typePaths) {
       const levels: string[] = typePath.pathToGeneratedFile
@@ -136,11 +148,14 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
           ...(indexFilesMap.get(pathToMainIndexFile) === undefined ? [] : indexFilesMap.get(pathToMainIndexFile)!),
           this._getExportDeclarationForFile(path.relative(path.join(this._projectRoot), levels.join(path.sep))),
         ]);
-
-        topLevelCircuits.push(this._getCircuitName(typePath.circuitArtifact));
       }
 
       isCircuitNameExist.set(typePath.circuitArtifact.circuitName, true);
+
+      topLevelCircuits[typePath.circuitArtifact.circuitName] =
+        topLevelCircuits[typePath.circuitArtifact.circuitName] === undefined
+          ? [typePath]
+          : [...topLevelCircuits[typePath.circuitArtifact.circuitName], typePath];
     }
 
     for (const [absolutePath, content] of indexFilesMap) {

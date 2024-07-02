@@ -2,10 +2,10 @@ import * as Circuits from ".";
 
 declare module "hardhat/types/runtime" {
     interface HardhatZKit {
-        <% for (let i = 0; i < circuitClassNames.length; i++) { -%>
+        <% for (let i = 0; i < circuitClasses.length; i++) { -%>
             getCircuit(
-                name: "<%= circuitClassNames[i] %>"
-            )   : Promise<Circuits.<%= circuitClassNames[i] %>>;
+                name: "<%= circuitClasses[i].name %>"
+            )   : Promise<Circuits.<%= circuitClasses[i].object %>>;
         <% } -%>
     }
 }
