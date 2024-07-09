@@ -18,8 +18,6 @@ import { normalizeName } from "../utils";
 import { SignalTypeNames, SignalVisibilityNames } from "../constants";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
-  protected _nameToObjectNameMap: Map<string, string> = new Map();
-
   protected async _genHardhatZkitTypeExtension(circuits: {
     [circuitName: string]: ArtifactWithPath[];
   }): Promise<string> {
@@ -28,8 +26,6 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     const circuitClasses: CircuitClass[] = [];
 
     const keys = Object.keys(circuits);
-
-    const outputTypesDir = this.getOutputTypesDir();
 
     for (let i = 0; i < keys.length; i++) {
       const artifacts = circuits[keys[i]];
@@ -40,28 +36,14 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
           object: this._getCircuitName(artifacts[0].circuitArtifact),
         });
 
-        this._nameToObjectNameMap.set(
-          this._getCircuitName(artifacts[0].circuitArtifact),
-          this._getCircuitName(artifacts[0].circuitArtifact),
-        );
-
         continue;
       }
 
       for (const artifact of artifacts) {
-        const objectName = path
-          .normalize(artifact.pathToGeneratedFile.replace(outputTypesDir, ""))
-          .split(path.sep)
-          .filter((level) => level !== "")
-          .map((level, index, array) => (index !== array.length - 1 ? normalizeName(level) : level.replace(".ts", "")))
-          .join(".");
-
         circuitClasses.push({
           name: this._getFullCircuitName(artifact.circuitArtifact),
-          object: objectName,
+          object: this._getObjectPath(artifact.pathToGeneratedFile),
         });
-
-        this._nameToObjectNameMap.set(this._getFullCircuitName(artifact.circuitArtifact), objectName);
       }
     }
 
@@ -70,6 +52,15 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     };
 
     return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
+  }
+
+  protected _getObjectPath(pathToGeneratedFile: string): string {
+    return path
+      .normalize(pathToGeneratedFile.replace(this.getOutputTypesDir(), ""))
+      .split(path.sep)
+      .filter((level) => level !== "")
+      .map((level, index, array) => (index !== array.length - 1 ? normalizeName(level) : level.replace(".ts", "")))
+      .join(".");
   }
 
   protected async _genCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {

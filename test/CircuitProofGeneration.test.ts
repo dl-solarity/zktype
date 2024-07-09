@@ -51,8 +51,11 @@ describe("Circuit Proof Generation", function () {
     new (await circuitTypesGenerator.getCircuitObject("CredentialAtomicQueryMTPOnChainVoting"))();
     new (await circuitTypesGenerator.getCircuitObject("EnhancedMultiplier"))();
 
-    await expect(circuitTypesGenerator.getCircuitObject("Multiplier2")).to.be.rejectedWith(
-      "Circuit Multiplier2 type does not exist.",
+    await expect(circuitTypesGenerator.getCircuitObject("Multiplier3")).to.be.rejectedWith(
+      "Circuit Multiplier3 type does not exist.",
+    );
+    await expect(circuitTypesGenerator.getCircuitObject("test/fixture/Basic.circom:Multiplier3")).to.be.rejectedWith(
+      "Circuit Multiplier3 type does not exist.",
     );
   });
 

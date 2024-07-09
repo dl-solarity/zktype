@@ -24,19 +24,24 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   public async getCircuitObject(circuitName: string): Promise<any> {
     const pathToGeneratedTypes = path.join(this._projectRoot, this.getOutputTypesDir());
 
-    if (this._nameToObjectNameMap.size === 0) {
-      throw new Error("No circuit types have been generated.");
-    }
-
     const module = await import(pathToGeneratedTypes);
 
-    const circuitObjectPath = this._nameToObjectNameMap.get(circuitName);
+    if (!this._isFullyQualifiedCircuitName(circuitName)) {
+      if (!module[circuitName]) {
+        throw new Error(`Circuit ${circuitName} type does not exist.`);
+      }
 
-    if (!circuitObjectPath) {
-      throw new Error(`Circuit ${circuitName} type does not exist.`);
+      return module[circuitName];
     }
 
-    return circuitObjectPath.split(".").reduce((acc, key) => acc[key], module as any);
+    const parts = circuitName.split(":");
+    const pathsToModule = this._getPathToGeneratedFile(this._zktypeConfig.basePath, parts[0], parts[1]);
+
+    return this._getObjectFromModule(module, this._getObjectPath(pathsToModule));
+  }
+
+  private _getObjectFromModule(module: any, path: string): any {
+    return path.split(".").reduce((acc, key) => acc[key], module as any);
   }
 
   /**
@@ -66,18 +71,17 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
       const isNameAlreadyExist = isNameExist.has(circuitName);
       isNameExist.set(circuitName, true);
 
-      let circuitTypePath = path
-        .join(
-          BaseTSGenerator.DOMAIN_SEPARATOR,
-          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
-        )
-        .replace(path.basename(circuitArtifacts[i].sourceName), `${circuitName}.ts`);
+      let circuitTypePath = this._getCircuitTypeShortPath(
+        circuitArtifacts[i].basePath,
+        circuitArtifacts[i].sourceName,
+        circuitName,
+      );
 
       if (isNameAlreadyExist) {
-        circuitTypePath = path.join(
-          BaseTSGenerator.DOMAIN_SEPARATOR,
-          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
-          `${circuitName}.ts`,
+        circuitTypePath = this._getCircuitTypeLongPath(
+          circuitArtifacts[i].basePath,
+          circuitArtifacts[i].sourceName,
+          circuitName,
         );
       }
 
@@ -96,6 +100,40 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     }
 
     await this._resolveTypePaths(typePathsToResolve);
+  }
+
+  private _getCircuitTypeLongPath(basePath: string, sourceName: string, circuitName: string): string {
+    return path.join(BaseTSGenerator.DOMAIN_SEPARATOR, sourceName.replace(basePath, ""), `${circuitName}.ts`);
+  }
+
+  private _getCircuitTypeShortPath(basePath: string, sourceName: string, circuitName: string): string {
+    return path
+      .join(BaseTSGenerator.DOMAIN_SEPARATOR, sourceName.replace(basePath, ""))
+      .replace(path.basename(sourceName), `${circuitName}.ts`);
+  }
+
+  private _getPathToGeneratedFile(basePath: string, sourceName: string, circuitName: string): string {
+    const longObjectPath = this._getCircuitTypeLongPath(basePath, sourceName, circuitName);
+    const shortObjectPath = this._getCircuitTypeShortPath(basePath, sourceName, circuitName);
+
+    const isLongPathExist = this._checkIfCircuitExists(longObjectPath);
+    const isShortPathExist = this._checkIfCircuitExists(shortObjectPath);
+
+    if (!isLongPathExist && !isShortPathExist) {
+      throw new Error(`Circuit ${circuitName} type does not exist.`);
+    }
+
+    return isLongPathExist ? longObjectPath : shortObjectPath;
+  }
+
+  private _isFullyQualifiedCircuitName(circuitName: string): boolean {
+    return circuitName.includes(":");
+  }
+
+  private _checkIfCircuitExists(pathToCircuit: string): boolean {
+    const pathFromRoot = path.join(this._projectRoot, this.getOutputTypesDir(), pathToCircuit);
+
+    return fs.existsSync(pathFromRoot);
   }
 
   /**

@@ -194,11 +194,7 @@ export default class CircuitArtifactGenerator {
    */
   private _findTemplateForCircuit(compilerOutputs: CircomCompilerOutput[], circuitName: string): Template {
     for (const compilerOutput of compilerOutputs) {
-      if (
-        !compilerOutput.definitions ||
-        compilerOutput.definitions.length < 1 ||
-        !compilerOutput.definitions[0].Template
-      ) {
+      if (!compilerOutput.definitions || compilerOutput.definitions.length < 1) {
         continue;
       }
 
