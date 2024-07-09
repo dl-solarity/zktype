@@ -20,7 +20,7 @@
     "test": "npm run prepare-test && mocha --recursive 'test/**/*.ts' --exit",
     "coverage": "prepare-test && nyc mocha --recursive 'test/**/*.ts' --exit",
     "lint-fix": "prettier --write '**/*.ts'",
-    "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
+    "publish-to-npm": "npm run build && rm -rf dist/templates && cp -rf src/templates dist/templates && npm publish ./ --access public"
   },
   "nyc": {
     "reporter": [
