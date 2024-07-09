@@ -1,9 +1,9 @@
 {
   "name": "@solarity/zktype",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Unleash TypeScript bindings for Circom circuits",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "engines": {
     "node": ">=18"
   },
@@ -20,7 +20,7 @@
     "test": "npm run prepare-test && mocha --recursive 'test/**/*.ts' --exit",
     "coverage": "prepare-test && nyc mocha --recursive 'test/**/*.ts' --exit",
     "lint-fix": "prettier --write '**/*.ts'",
-    "publish-to-npm": "npm run build && npm run lint-fix && npm publish ./ --access public"
+    "publish-to-npm": "npm run build && npm run lint-fix && rm -rf dist/core/templates && cp -rf src/core/templates dist/core/templates && npm publish ./ --access public"
   },
   "nyc": {
     "reporter": [

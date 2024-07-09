@@ -1,11 +1,14 @@
 import { generateAST } from "./generator";
 
-import CircuitTypesGenerator from "../../src/core/CircuitTypesGenerator";
+import { CircuitTypesGenerator } from "../../src";
+
+import { findProjectRoot } from "../../src/utils";
 
 const astDir = "test/cache/circuits-ast";
 
 const circuitTypesGenerator = new CircuitTypesGenerator({
   basePath: "test/fixture",
+  projectRoot: findProjectRoot(process.cwd()),
   circuitsASTPaths: [
     "test/cache/circuits-ast/Basic.json",
     "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",

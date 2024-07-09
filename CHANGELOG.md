@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.2.1]
+
+- Fixed incorrect export of `CircuitTypesGenerator` class
+- Added an ability to set project root path in `ZKTypeConfig`
+
 ## [v0.2.0]
 
 - Resolved an issue where inputs could have the wrong number of dimensions, such as `bigint[]` when `bigint[][]` was expected.

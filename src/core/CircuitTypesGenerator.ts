@@ -17,26 +17,31 @@ import { CircuitArtifact, ArtifactWithPath } from "../types";
  *
  * Note: Currently, all signals are considered as `bigint` type.
  */
-export default class CircuitTypesGenerator extends ZkitTSGenerator {
+export class CircuitTypesGenerator extends ZkitTSGenerator {
   /**
    * Returns an object that represents the circuit class based on the circuit name.
    */
   public async getCircuitObject(circuitName: string): Promise<any> {
     const pathToGeneratedTypes = path.join(this._projectRoot, this.getOutputTypesDir());
 
-    if (this._nameToObjectNameMap.size === 0) {
-      throw new Error("No circuit types have been generated.");
-    }
-
     const module = await import(pathToGeneratedTypes);
 
-    const circuitObjectPath = this._nameToObjectNameMap.get(circuitName);
+    if (!this._isFullyQualifiedCircuitName(circuitName)) {
+      if (!module[circuitName]) {
+        throw new Error(`Circuit ${circuitName} type does not exist.`);
+      }
 
-    if (!circuitObjectPath) {
-      throw new Error(`Circuit ${circuitName} type does not exist.`);
+      return module[circuitName];
     }
 
-    return circuitObjectPath.split(".").reduce((acc, key) => acc[key], module as any);
+    const parts = circuitName.split(":");
+    const pathsToModule = this._getPathToGeneratedFile(this._zktypeConfig.basePath, parts[0], parts[1]);
+
+    return this._getObjectFromModule(module, this._getObjectPath(pathsToModule));
+  }
+
+  private _getObjectFromModule(module: any, path: string): any {
+    return path.split(".").reduce((acc, key) => acc[key], module as any);
   }
 
   /**
@@ -66,18 +71,17 @@ export default class CircuitTypesGenerator extends ZkitTSGenerator {
       const isNameAlreadyExist = isNameExist.has(circuitName);
       isNameExist.set(circuitName, true);
 
-      let circuitTypePath = path
-        .join(
-          BaseTSGenerator.DOMAIN_SEPARATOR,
-          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
-        )
-        .replace(path.basename(circuitArtifacts[i].sourceName), `${circuitName}.ts`);
+      let circuitTypePath = this._getCircuitTypeShortPath(
+        circuitArtifacts[i].basePath,
+        circuitArtifacts[i].sourceName,
+        circuitName,
+      );
 
       if (isNameAlreadyExist) {
-        circuitTypePath = path.join(
-          BaseTSGenerator.DOMAIN_SEPARATOR,
-          circuitArtifacts[i].sourceName.replace(circuitArtifacts[i].basePath, ""),
-          `${circuitName}.ts`,
+        circuitTypePath = this._getCircuitTypeLongPath(
+          circuitArtifacts[i].basePath,
+          circuitArtifacts[i].sourceName,
+          circuitName,
         );
       }
 

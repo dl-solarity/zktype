@@ -1,8 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-import { findProjectRoot } from "../utils";
-
 import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../constants";
 import {
   Stmt,
@@ -40,7 +38,7 @@ export default class CircuitArtifactGenerator {
    * @param {ArtifactGeneratorConfig} circuitArtifactGeneratorConfig - The configuration for the `CircuitArtifactGenerator`.
    */
   constructor(circuitArtifactGeneratorConfig: ArtifactGeneratorConfig) {
-    this._projectRoot = findProjectRoot(process.cwd());
+    this._projectRoot = circuitArtifactGeneratorConfig.projectRoot;
     this._circuitArtifactGeneratorConfig = circuitArtifactGeneratorConfig;
   }
 
@@ -79,7 +77,11 @@ export default class CircuitArtifactGenerator {
    * @returns {Promise<CircuitArtifact>} A promise that resolves to the extracted circuit artifact.
    */
   public async extractArtifact(pathToTheAST: string): Promise<CircuitArtifact> {
-    const ast: CircuitAST = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
+    const ast: CircuitAST | undefined = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
+
+    if (!ast) {
+      throw new Error(`The circuit AST is missing. Path: ${pathToTheAST}`);
+    }
 
     this._validateCircuitAST(ast);
 
@@ -192,18 +194,18 @@ export default class CircuitArtifactGenerator {
    */
   private _findTemplateForCircuit(compilerOutputs: CircomCompilerOutput[], circuitName: string): Template {
     for (const compilerOutput of compilerOutputs) {
-      if (
-        !compilerOutput.definitions ||
-        compilerOutput.definitions.length < 1 ||
-        !compilerOutput.definitions[0].Template
-      ) {
+      if (!compilerOutput.definitions || compilerOutput.definitions.length < 1) {
         continue;
       }
 
-      const template = compilerOutput.definitions[0].Template;
+      for (const definition of compilerOutput.definitions) {
+        if (!definition.Template) {
+          continue;
+        }
 
-      if (template.name === circuitName) {
-        return template;
+        if (definition.Template.name === circuitName) {
+          return definition.Template;
+        }
       }
     }
 
@@ -218,6 +220,10 @@ export default class CircuitArtifactGenerator {
    * @throws {Error} If the AST does not meet the expected structure.
    */
   private _validateCircuitAST(ast: CircuitAST): void {
+    if (!ast.circomCompilerOutput) {
+      throw new Error(`The circomCompilerOutput field is missing in the circuit AST`);
+    }
+
     if (
       ast.circomCompilerOutput.length < 1 ||
       !ast.circomCompilerOutput[0].main_component ||
