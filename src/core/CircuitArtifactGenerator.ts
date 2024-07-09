@@ -77,7 +77,11 @@ export default class CircuitArtifactGenerator {
    * @returns {Promise<CircuitArtifact>} A promise that resolves to the extracted circuit artifact.
    */
   public async extractArtifact(pathToTheAST: string): Promise<CircuitArtifact> {
-    const ast: CircuitAST = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
+    const ast: CircuitAST | undefined = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
+
+    if (!ast) {
+      throw new Error(`The circuit AST is missing. Path: ${pathToTheAST}`);
+    }
 
     this._validateCircuitAST(ast);
 
