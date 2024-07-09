@@ -126,4 +126,61 @@ export default class BaseTSGenerator {
 
     return preambleNodes.join("\n");
   }
+
+  /**
+   * Returns the long path to the circuit type.
+   *
+   * The long path is the path that includes the source name and the circuit name.
+   */
+  protected _getCircuitTypeLongPath(basePath: string, sourceName: string, circuitName: string): string {
+    return path.join(BaseTSGenerator.DOMAIN_SEPARATOR, sourceName.replace(basePath, ""), `${circuitName}.ts`);
+  }
+
+  /**
+   * Returns the short path to the circuit type.
+   *
+   * The short path is the path that includes ONLY the circuit name.
+   */
+  protected _getCircuitTypeShortPath(basePath: string, sourceName: string, circuitName: string): string {
+    return path
+      .join(BaseTSGenerator.DOMAIN_SEPARATOR, sourceName.replace(basePath, ""))
+      .replace(path.basename(sourceName), `${circuitName}.ts`);
+  }
+
+  /**
+   * Returns the path to the generated file for the given circuit.
+   *
+   * The path can be either long or short, depending on the existence of the long path.
+   */
+  protected _getPathToGeneratedFile(basePath: string, sourceName: string, circuitName: string): string {
+    const longObjectPath = this._getCircuitTypeLongPath(basePath, sourceName, circuitName);
+    const shortObjectPath = this._getCircuitTypeShortPath(basePath, sourceName, circuitName);
+
+    const isLongPathExist = this._checkIfCircuitExists(longObjectPath);
+    const isShortPathExist = this._checkIfCircuitExists(shortObjectPath);
+
+    if (!isLongPathExist && !isShortPathExist) {
+      throw new Error(`Circuit ${circuitName} type does not exist.`);
+    }
+
+    return isLongPathExist ? longObjectPath : shortObjectPath;
+  }
+
+  /**
+   * Checks if the circuit name is fully qualified.
+   */
+  protected _isFullyQualifiedCircuitName(circuitName: string): boolean {
+    return circuitName.includes(":");
+  }
+
+  /**
+   * Checks if the circuit exists.
+   *
+   * Expects to get the path to the circuit file, relative to the directory where the generated types are stored.
+   */
+  protected _checkIfCircuitExists(pathToCircuit: string): boolean {
+    const pathFromRoot = path.join(this._projectRoot, this.getOutputTypesDir(), pathToCircuit);
+
+    return fs.existsSync(pathFromRoot);
+  }
 }

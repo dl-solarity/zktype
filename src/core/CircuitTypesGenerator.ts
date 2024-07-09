@@ -102,40 +102,6 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     await this._resolveTypePaths(typePathsToResolve);
   }
 
-  private _getCircuitTypeLongPath(basePath: string, sourceName: string, circuitName: string): string {
-    return path.join(BaseTSGenerator.DOMAIN_SEPARATOR, sourceName.replace(basePath, ""), `${circuitName}.ts`);
-  }
-
-  private _getCircuitTypeShortPath(basePath: string, sourceName: string, circuitName: string): string {
-    return path
-      .join(BaseTSGenerator.DOMAIN_SEPARATOR, sourceName.replace(basePath, ""))
-      .replace(path.basename(sourceName), `${circuitName}.ts`);
-  }
-
-  private _getPathToGeneratedFile(basePath: string, sourceName: string, circuitName: string): string {
-    const longObjectPath = this._getCircuitTypeLongPath(basePath, sourceName, circuitName);
-    const shortObjectPath = this._getCircuitTypeShortPath(basePath, sourceName, circuitName);
-
-    const isLongPathExist = this._checkIfCircuitExists(longObjectPath);
-    const isShortPathExist = this._checkIfCircuitExists(shortObjectPath);
-
-    if (!isLongPathExist && !isShortPathExist) {
-      throw new Error(`Circuit ${circuitName} type does not exist.`);
-    }
-
-    return isLongPathExist ? longObjectPath : shortObjectPath;
-  }
-
-  private _isFullyQualifiedCircuitName(circuitName: string): boolean {
-    return circuitName.includes(":");
-  }
-
-  private _checkIfCircuitExists(pathToCircuit: string): boolean {
-    const pathFromRoot = path.join(this._projectRoot, this.getOutputTypesDir(), pathToCircuit);
-
-    return fs.existsSync(pathFromRoot);
-  }
-
   /**
    * Generates the index files in the `TYPES_DIR` directory and its subdirectories.
    *
