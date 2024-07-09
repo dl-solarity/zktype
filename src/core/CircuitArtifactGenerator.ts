@@ -220,6 +220,10 @@ export default class CircuitArtifactGenerator {
    * @throws {Error} If the AST does not meet the expected structure.
    */
   private _validateCircuitAST(ast: CircuitAST): void {
+    if (!ast.circomCompilerOutput) {
+      throw new Error(`The circomCompilerOutput field is missing in the circuit AST`);
+    }
+
     if (
       ast.circomCompilerOutput.length < 1 ||
       !ast.circomCompilerOutput[0].main_component ||
