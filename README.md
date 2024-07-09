@@ -55,3 +55,19 @@ Generates TypeScript bindings for the given circuits, based on the provided conf
 const generator = new CircuitTypesGenerator(config);
 await generator.generateTypes();
 ```
+
+Also, this function generates the `hardhat.d.ts` file, where you can find all of the possible objects that can be retrieved by the function below.
+
+#### getCircuitObject(circuitName: string): Promise<any>
+
+Returns the constructible object for the given circuit.
+
+```typescript
+const generator = new CircuitTypesGenerator(config);
+await generator.generateTypes();
+const circuitObject = await generator.getCircuitObject("MyCircuit");
+```
+
+After the `circuitObject` is retrieved, check out the [zkit](https://github.com/dl-solarity/zkit) documentation to see how to work with it.
+
+To ensure that the object can be imported, check the `hardhat.d.ts` file.
