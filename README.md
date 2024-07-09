@@ -30,6 +30,7 @@ To create a `CircuitTypesGenerator` object, it is necessary to pass a config:
 ```typescript
 ZKTypeConfig = {
   basePath: string;
+  projectRoot: string;
   circuitsASTPaths: string[];
   outputArtifactsDir?: string;
   outputTypesDir?: string;
@@ -39,6 +40,7 @@ ZKTypeConfig = {
 This config contains all the information required to generate TypeScript bindings for given circuits.
 
 - `basePath` - Path to the root directory of the project where circuits are stored.
+- `projectRoot` - Absolute path to the root directory of the project.
 - `circuitsASTPaths` - Array of paths to the circuits' AST files.
 - `outputArtifactsDir` - Path to the directory where the generated artifacts will be stored.
     - Optional. Default: `artifacts/circuits`.
@@ -53,3 +55,19 @@ Generates TypeScript bindings for the given circuits, based on the provided conf
 const generator = new CircuitTypesGenerator(config);
 await generator.generateTypes();
 ```
+
+Also, this function generates the `hardhat.d.ts` file, where you can find all of the possible objects that can be retrieved by the function below.
+
+#### getCircuitObject(circuitName: string): Promise<any>
+
+Returns the constructible object for the given circuit.
+
+```typescript
+const generator = new CircuitTypesGenerator(config);
+await generator.generateTypes();
+const circuitObject = await generator.getCircuitObject("MyCircuit");
+```
+
+After the `circuitObject` is retrieved, check out the [zkit](https://github.com/dl-solarity/zkit) documentation to see how to work with it.
+
+To ensure that the object can be imported, check the `hardhat.d.ts` file.
