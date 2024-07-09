@@ -202,10 +202,14 @@ export default class CircuitArtifactGenerator {
         continue;
       }
 
-      const template = compilerOutput.definitions[0].Template;
+      for (const definition of compilerOutput.definitions) {
+        if (!definition.Template) {
+          continue;
+        }
 
-      if (template.name === circuitName) {
-        return template;
+        if (definition.Template.name === circuitName) {
+          return definition.Template;
+        }
       }
     }
 
