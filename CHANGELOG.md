@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.2.1]
+
+- Fixed incorrect export of `CircuitTypesGenerator` class
+
 ## [v0.2.0]
 
 - Resolved an issue where inputs could have the wrong number of dimensions, such as `bigint[]` when `bigint[][]` was expected.

@@ -5,7 +5,7 @@ import { CircuitZKitConfig } from "@solarity/zkit";
 
 import { generateAST } from "./helpers/generator";
 
-import CircuitTypesGenerator from "../src/core/CircuitTypesGenerator";
+import { CircuitTypesGenerator } from "../src";
 
 describe("Circuit Proof Generation", function () {
   const astDir = "test/cache/circuits-ast";

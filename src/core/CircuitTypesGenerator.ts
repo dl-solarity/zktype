@@ -17,7 +17,7 @@ import { CircuitArtifact, ArtifactWithPath } from "../types";
  *
  * Note: Currently, all signals are considered as `bigint` type.
  */
-export default class CircuitTypesGenerator extends ZkitTSGenerator {
+export class CircuitTypesGenerator extends ZkitTSGenerator {
   /**
    * Returns an object that represents the circuit class based on the circuit name.
    */
