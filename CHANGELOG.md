@@ -3,6 +3,7 @@
 ## [v0.2.1]
 
 - Fixed incorrect export of `CircuitTypesGenerator` class
+- Added an ability to set project root path in `ZKTypeConfig`
 
 ## [v0.2.0]
 

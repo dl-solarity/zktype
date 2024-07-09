@@ -6,12 +6,14 @@ import { CircuitZKitConfig } from "@solarity/zkit";
 import { generateAST } from "./helpers/generator";
 
 import { CircuitTypesGenerator } from "../src";
+import { findProjectRoot } from "../src/utils";
 
 describe("Circuit Proof Generation", function () {
   const astDir = "test/cache/circuits-ast";
 
   const circuitTypesGenerator = new CircuitTypesGenerator({
     basePath: "test/fixture",
+    projectRoot: findProjectRoot(process.cwd()),
     circuitsASTPaths: [
       "test/cache/circuits-ast/Basic.json",
       "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",

@@ -1,8 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-import { findProjectRoot } from "../utils";
-
 import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../constants";
 import {
   Stmt,
@@ -40,7 +38,7 @@ export default class CircuitArtifactGenerator {
    * @param {ArtifactGeneratorConfig} circuitArtifactGeneratorConfig - The configuration for the `CircuitArtifactGenerator`.
    */
   constructor(circuitArtifactGeneratorConfig: ArtifactGeneratorConfig) {
-    this._projectRoot = findProjectRoot(process.cwd());
+    this._projectRoot = circuitArtifactGeneratorConfig.projectRoot;
     this._circuitArtifactGeneratorConfig = circuitArtifactGeneratorConfig;
   }
 

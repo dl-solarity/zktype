@@ -6,8 +6,6 @@ import CircuitArtifactGenerator from "./CircuitArtifactGenerator";
 
 import { CircuitArtifact, ZKTypeConfig } from "../types";
 
-import { findProjectRoot } from "../utils";
-
 /**
  * `BaseTSGenerator` is a base class for all TypeScript generators.
  *
@@ -33,7 +31,7 @@ export default class BaseTSGenerator {
 
     this._artifactsGenerator = new CircuitArtifactGenerator(config);
 
-    this._projectRoot = findProjectRoot(process.cwd());
+    this._projectRoot = config.projectRoot;
 
     this._printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
     this._resultFile = ts.createSourceFile("", "", ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);

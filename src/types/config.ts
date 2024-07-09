@@ -17,6 +17,11 @@ export interface ArtifactGeneratorConfig {
   circuitsASTPaths: string[];
 
   /**
+   * The absolute path to the root directory of the project.
+   */
+  projectRoot: string;
+
+  /**
    * The path to the directory where the generated artifacts will be stored.
    */
   outputArtifactsDir?: string;

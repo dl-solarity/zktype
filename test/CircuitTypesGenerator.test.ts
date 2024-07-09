@@ -18,6 +18,7 @@ describe("Circuit Types Generation", function () {
 
   const circuitTypesGenerator = new CircuitTypesGenerator({
     basePath: "test/fixture",
+    projectRoot: findProjectRoot(process.cwd()),
     circuitsASTPaths: [
       "test/cache/circuits-ast/Basic.json",
       "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",
