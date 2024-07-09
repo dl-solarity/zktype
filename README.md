@@ -30,6 +30,7 @@ To create a `CircuitTypesGenerator` object, it is necessary to pass a config:
 ```typescript
 ZKTypeConfig = {
   basePath: string;
+  projectRoot: string;
   circuitsASTPaths: string[];
   outputArtifactsDir?: string;
   outputTypesDir?: string;
@@ -39,6 +40,7 @@ ZKTypeConfig = {
 This config contains all the information required to generate TypeScript bindings for given circuits.
 
 - `basePath` - Path to the root directory of the project where circuits are stored.
+- `projectRoot` - Absolute path to the root directory of the project.
 - `circuitsASTPaths` - Array of paths to the circuits' AST files.
 - `outputArtifactsDir` - Path to the directory where the generated artifacts will be stored.
     - Optional. Default: `artifacts/circuits`.
