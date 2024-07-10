@@ -1,6 +1,6 @@
 {
   "name": "@solarity/zktype",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Unleash TypeScript bindings for Circom circuits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,8 +8,8 @@
     "node": ">=18"
   },
   "files": [
-    "dist/src/",
-    "src/",
+    "dist",
+    "src",
     "LICENSE",
     "README.md"
   ],
