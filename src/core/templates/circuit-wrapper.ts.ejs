@@ -1,5 +1,4 @@
 import {
-  Calldata,
   CircuitZKit,
   CircuitZKitConfig,
   Groth16Proof,
@@ -8,22 +7,29 @@ import {
   PublicSignals,
 } from "@solarity/zkit";
 
-export interface <%= privateInputsInterfaceName %> {
+export type <%= privateInputsInterfaceName %> = {
 <% for (let i = 0; i < privateInputs.length; i++) { -%>
     <%= privateInputs[i].name %>: NumberLike <%= privateInputs[i].dimensions %>;
 <% } -%>
 }
 
-export interface <%= publicInputsInterfaceName %> {
+export type <%= publicInputsInterfaceName %> = {
 <% for (let i = 0; i < publicInputs.length; i++) { -%>
     <%= publicInputs[i].name %>: NumericString <%= publicInputs[i].dimensions %>;
 <% } -%>
 }
 
-export interface <%= proofInterfaceName %> {
+export type <%= proofInterfaceName %> = {
   proof: Groth16Proof;
   publicSignals: <%= publicInputsInterfaceName %>;
 }
+
+export type Calldata = [
+    [NumericString, NumericString],
+    [[NumericString, NumericString], [NumericString, NumericString]],
+    [NumericString, NumericString],
+    <%= calldataPubSignalsType %>,
+];
 
 export class <%= circuitClassName %> extends CircuitZKit {
   constructor(config: CircuitZKitConfig) {

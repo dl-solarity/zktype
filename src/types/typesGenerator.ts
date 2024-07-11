@@ -14,6 +14,7 @@ export interface WrapperTemplateParams {
   publicInputsInterfaceName: string;
   privateInputs: Inputs[];
   publicInputs: Inputs[];
+  calldataPubSignalsType: string;
   proofInterfaceName: string;
   privateInputsInterfaceName: string;
   circuitClassName: string;
