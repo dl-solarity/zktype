@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.2.2-v0.2.3]
+
+- Fixed bug during the package publishing process
+- Added generation of custom `Calldata` type to resolve type conflicts when interacting with verifier contracts
+
 ## [v0.2.1]
 
 - Fixed incorrect export of `CircuitTypesGenerator` class

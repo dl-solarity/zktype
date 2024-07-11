@@ -1,5 +1,4 @@
 import {
-  Calldata,
   CircuitZKit,
   CircuitZKitConfig,
   Groth16Proof,
@@ -8,29 +7,36 @@ import {
   PublicSignals,
 } from "@solarity/zkit";
 
-export interface <%= privateInputsInterfaceName %> {
+export type <%= privateInputsTypeName %> = {
 <% for (let i = 0; i < privateInputs.length; i++) { -%>
     <%= privateInputs[i].name %>: NumberLike <%= privateInputs[i].dimensions %>;
 <% } -%>
 }
 
-export interface <%= publicInputsInterfaceName %> {
+export type <%= publicInputsTypeName %> = {
 <% for (let i = 0; i < publicInputs.length; i++) { -%>
     <%= publicInputs[i].name %>: NumericString <%= publicInputs[i].dimensions %>;
 <% } -%>
 }
 
-export interface <%= proofInterfaceName %> {
+export type <%= proofTypeName %> = {
   proof: Groth16Proof;
-  publicSignals: <%= publicInputsInterfaceName %>;
+  publicSignals: <%= publicInputsTypeName %>;
 }
+
+export type Calldata = [
+    [NumericString, NumericString],
+    [[NumericString, NumericString], [NumericString, NumericString]],
+    [NumericString, NumericString],
+    <%= calldataPubSignalsType %>,
+];
 
 export class <%= circuitClassName %> extends CircuitZKit {
   constructor(config: CircuitZKitConfig) {
     super(config);
   }
 
-  public async generateProof(inputs: <%= privateInputsInterfaceName %>): Promise<<%= proofInterfaceName %>> {
+  public async generateProof(inputs: <%= privateInputsTypeName %>): Promise<<%= proofTypeName %>> {
     const proof = await super.generateProof(inputs as any);
 
     return {
@@ -39,14 +45,14 @@ export class <%= circuitClassName %> extends CircuitZKit {
     };
   }
 
-  public async verifyProof(proof: <%= proofInterfaceName %>): Promise<boolean> {
+  public async verifyProof(proof: <%= proofTypeName %>): Promise<boolean> {
     return await super.verifyProof({
       proof: proof.proof,
       publicSignals: this._denormalizePublicSignals(proof.publicSignals),
     });
   }
 
-  public async generateCalldata(proof: <%= proofInterfaceName %>): Promise<Calldata> {
+  public async generateCalldata(proof: <%= proofTypeName %>): Promise<Calldata> {
     return await super.generateCalldata({
       proof: proof.proof,
       publicSignals: this._denormalizePublicSignals(proof.publicSignals),
@@ -61,7 +67,7 @@ export class <%= circuitClassName %> extends CircuitZKit {
     ];
   }
 
-  private _normalizePublicSignals(publicSignals: PublicSignals): <%= publicInputsInterfaceName %> {
+  private _normalizePublicSignals(publicSignals: PublicSignals): <%= publicInputsTypeName %> {
     const signalNames = this.getSignalNames();
 
     return signalNames.reduce((acc: any, signalName, index) => {
@@ -70,7 +76,7 @@ export class <%= circuitClassName %> extends CircuitZKit {
     }, {});
   }
 
-  private _denormalizePublicSignals(publicSignals: <%= publicInputsInterfaceName %>): PublicSignals {
+  private _denormalizePublicSignals(publicSignals: <%= publicInputsTypeName %>): PublicSignals {
     const signalNames = this.getSignalNames();
 
     return signalNames.map((signalName) => (publicSignals as any)[signalName]);

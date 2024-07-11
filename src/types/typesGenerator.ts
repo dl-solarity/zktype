@@ -11,11 +11,12 @@ export interface Inputs {
 }
 
 export interface WrapperTemplateParams {
-  publicInputsInterfaceName: string;
+  publicInputsTypeName: string;
   privateInputs: Inputs[];
   publicInputs: Inputs[];
-  proofInterfaceName: string;
-  privateInputsInterfaceName: string;
+  calldataPubSignalsType: string;
+  proofTypeName: string;
+  privateInputsTypeName: string;
   circuitClassName: string;
 }
 

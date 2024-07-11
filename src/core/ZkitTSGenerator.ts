@@ -1,6 +1,7 @@
 import fs from "fs";
 import ejs from "ejs";
 import path from "path";
+import ts from "typescript";
 import prettier from "prettier";
 
 import BaseTSGenerator from "./BaseTSGenerator";
@@ -92,13 +93,20 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
 
     const templateParams: WrapperTemplateParams = {
       circuitClassName: this._getCircuitName(circuitArtifact),
-      publicInputsInterfaceName: this._getInterfaceName(circuitArtifact, "Public"),
+      publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),
+      calldataPubSignalsType: this._getCalldataPubSignalsType(publicInputs.length),
       publicInputs,
       privateInputs,
-      proofInterfaceName: this._getInterfaceName(circuitArtifact, "Proof"),
-      privateInputsInterfaceName: this._getInterfaceName(circuitArtifact, "Private"),
+      proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
+      privateInputsTypeName: this._getTypeName(circuitArtifact, "Private"),
     };
 
     return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
+  }
+
+  private _getCalldataPubSignalsType(pubSignalsCount: number): string {
+    const calldataType = new Array(pubSignalsCount).fill(ts.factory.createTypeReferenceNode("NumericString"));
+
+    return this._getNodeContent(ts.factory.createTupleTypeNode(calldataType));
   }
 }
