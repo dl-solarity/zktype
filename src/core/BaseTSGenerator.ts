@@ -13,7 +13,7 @@ import { CircuitArtifact, ZKTypeConfig } from "../types";
  */
 export default class BaseTSGenerator {
   /**
-   * This separator is needed to distinguish between generated interfaces and auxiliary generated files.
+   * This separator is needed to distinguish between generated types and auxiliary generated files.
    */
   public static readonly DOMAIN_SEPARATOR: string = "core";
 
@@ -81,13 +81,13 @@ export default class BaseTSGenerator {
   }
 
   /**
-   * Extracts the interface name from the circuit artifact.
+   * Extracts the type name from the circuit artifact.
    *
-   * @param {CircuitArtifact} circuitArtifact - The circuit artifact from which the interface name is extracted.
-   * @param {string} [prefix=""] - The prefix to be added to the interface name.
-   * @returns {string} The extracted interface name.
+   * @param {CircuitArtifact} circuitArtifact - The circuit artifact from which the type name is extracted.
+   * @param {string} [prefix=""] - The prefix to be added to the type name.
+   * @returns {string} The extracted type name.
    */
-  protected _getInterfaceName(circuitArtifact: CircuitArtifact, prefix: string = ""): string {
+  protected _getTypeName(circuitArtifact: CircuitArtifact, prefix: string = ""): string {
     return `${prefix}${circuitArtifact.circuitName.replace(path.extname(circuitArtifact.circuitName), "")}`;
   }
 

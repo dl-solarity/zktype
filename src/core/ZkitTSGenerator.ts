@@ -93,12 +93,12 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
 
     const templateParams: WrapperTemplateParams = {
       circuitClassName: this._getCircuitName(circuitArtifact),
-      publicInputsInterfaceName: this._getInterfaceName(circuitArtifact, "Public"),
+      publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),
       calldataPubSignalsType: this._getCalldataPubSignalsType(publicInputs.length),
       publicInputs,
       privateInputs,
-      proofInterfaceName: this._getInterfaceName(circuitArtifact, "Proof"),
-      privateInputsInterfaceName: this._getInterfaceName(circuitArtifact, "Private"),
+      proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
+      privateInputsTypeName: this._getTypeName(circuitArtifact, "Private"),
     };
 
     return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });

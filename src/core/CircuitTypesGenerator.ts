@@ -10,10 +10,10 @@ import { normalizeName } from "../utils";
 import { CircuitArtifact, ArtifactWithPath } from "../types";
 
 /**
- * `CircuitTypesGenerator` is need for generating TypeScript interfaces based on circuit artifacts.
+ * `CircuitTypesGenerator` is need for generating TypeScript bindings based on circuit artifacts.
  *
- * The class fetches circuit artifacts from a dedicated folder, parses them, and generates TypeScript interfaces.
- * It creates a separate interface file for each circuit and an index file that exports all the interfaces.
+ * The class fetches circuit artifacts from a dedicated folder, parses them, and generates TypeScript bindings.
+ * It creates a separate types file for each circuit and an index file that exports all the types.
  *
  * Note: Currently, all signals are considered as `bigint` type.
  */
@@ -45,15 +45,15 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   }
 
   /**
-   * Generates TypeScript interfaces based on the circuit artifacts.
+   * Generates TypeScript bindings based on the circuit artifacts.
    *
-   * Based on each circuitArtifact one file with two interfaces is generated:
+   * Based on each circuitArtifact one file with two types is generated:
    * - Public<circuitName> - needed for the verification of the proof
    * - Private<circuitName> - needed for the generation of the proof
    *
-   * Also, `index.ts` file is generated that exports all the interfaces.
+   * Also, `index.ts` file is generated that exports all the types.
    *
-   * @returns {Promise<void>} A promise that resolves when all interfaces have been generated.
+   * @returns {Promise<void>} A promise that resolves when all types have been generated.
    */
   public async generateTypes(): Promise<void> {
     await this._artifactsGenerator.generateCircuitArtifacts();
@@ -233,9 +233,9 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   }
 
   /**
-   * Generates TypeScript interface definitions based on the single circuit artifact.
+   * Generates zkit wrapper class based on the single circuit artifact.
    *
-   * The generated interface for the circuit will be stored in the folder of the circuit file name.
+   * The generated class for the circuit will be stored in the folder of the circuit file name in case of circuit names collisions.
    *
    * For example, if the circuit file is named `DEFAULT_DIR/Basic.circom` and the main component is named Multiplier2, then the tree structure will be:
    *
@@ -245,7 +245,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    * │   └── Multiplier2.ts
    * ```
    *
-   * @param {CircuitArtifact} circuitArtifact - The circuit artifact for which the TypeScript interfaces are generated.
+   * @param {CircuitArtifact} circuitArtifact - The circuit artifact for which the TypeScript bindings are generated.
    * @returns {string} The relative to the TYPES_DIR path to the generated file.
    */
   private async _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact): Promise<string> {
