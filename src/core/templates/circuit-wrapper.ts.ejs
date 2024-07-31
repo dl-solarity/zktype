@@ -45,6 +45,10 @@ export class <%= circuitClassName %> extends CircuitZKit {
     };
   }
 
+  public async calculateWitness(inputs: <%= privateInputsTypeName %>): Promise<bigint[]> {
+    return await super.calculateWitness(inputs as any);
+  }
+
   public async verifyProof(proof: <%= proofTypeName %>): Promise<boolean> {
     return await super.verifyProof({
       proof: proof.proof,

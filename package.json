@@ -1,6 +1,6 @@
 {
   "name": "@solarity/zktype",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Unleash TypeScript bindings for Circom circuits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -46,11 +46,11 @@
   "homepage": "https://github.com/dl-solarity/zktype#readme",
   "dependencies": {
     "ejs": "3.1.10",
-    "prettier": "3.3.2",
-    "typescript": "5.4.5"
+    "prettier": "3.3.3",
+    "typescript": "5.5.4"
   },
   "peerDependencies": {
-    "@solarity/zkit": "^0.2.0"
+    "@solarity/zkit": "^0.2.4"
   },
   "devDependencies": {
     "@distributedlab/circom2": "0.2.18-rc.2",
