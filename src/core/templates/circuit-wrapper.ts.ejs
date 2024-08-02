@@ -7,6 +7,8 @@ import {
   PublicSignals,
 } from "@solarity/zkit";
 
+import { flatten, reshape } from "<%= pathToUtils %>";
+
 export type <%= privateInputsTypeName %> = {
 <% for (let i = 0; i < privateInputs.length; i++) { -%>
     <%= privateInputs[i].name %>: NumberLike <%= privateInputs[i].dimensions %>;
@@ -71,11 +73,24 @@ export class <%= circuitClassName %> extends CircuitZKit {
     ];
   }
 
+  public getSignalDimensions(name: string): number[] {
+    switch (name) {
+      <% for (let i = 0; i < publicInputs.length; i++) { -%>
+        case "<%= publicInputs[i].name %>": return [<%= publicInputs[i].dimensionsArray %>];
+      <% } -%>
+      default: throw new Error(`Unknown signal name: ${name}`);
+    }
+  }
+
   private _normalizePublicSignals(publicSignals: PublicSignals): <%= publicInputsTypeName %> {
     const signalNames = this.getSignalNames();
 
-    return signalNames.reduce((acc: any, signalName, index) => {
-      acc[signalName] = publicSignals[index];
+    let index = 0;
+    return signalNames.reduce((acc: any, signalName) => {
+      const dimensions = this.getSignalDimensions(signalName);
+      const size = dimensions.reduce((a, b) => a * b, 1);
+      acc[signalName] = reshape(publicSignals.slice(index, index + size), dimensions);
+      index += size;
       return acc;
     }, {});
   }
@@ -83,7 +98,9 @@ export class <%= circuitClassName %> extends CircuitZKit {
   private _denormalizePublicSignals(publicSignals: <%= publicInputsTypeName %>): PublicSignals {
     const signalNames = this.getSignalNames();
 
-    return signalNames.map((signalName) => (publicSignals as any)[signalName]);
+    return signalNames.reduce((acc: any[], signalName) => {
+      return acc.concat(flatten(publicSignals[signalName]));
+    }, []);
   }
 }
 

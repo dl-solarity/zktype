@@ -8,6 +8,7 @@ export interface ArtifactWithPath {
 export interface Inputs {
   name: string;
   dimensions: string;
+  dimensionsArray: string;
 }
 
 export interface WrapperTemplateParams {
@@ -18,6 +19,7 @@ export interface WrapperTemplateParams {
   proofTypeName: string;
   privateInputsTypeName: string;
   circuitClassName: string;
+  pathToUtils: string;
 }
 
 export interface CircuitClass {

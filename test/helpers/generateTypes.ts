@@ -15,6 +15,7 @@ const circuitTypesGenerator = new CircuitTypesGenerator({
     "test/cache/circuits-ast/lib/BasicInLib.json",
     "test/cache/circuits-ast/auth/EMultiplier.json",
     "test/cache/circuits-ast/auth/BasicInAuth.json",
+    "test/cache/circuits-ast/auth/Matrix.json",
   ],
 });
 
