@@ -17,7 +17,7 @@ export type <%= privateInputsTypeName %> = {
 
 export type <%= publicInputsTypeName %> = {
 <% for (let i = 0; i < publicInputs.length; i++) { -%>
-    <%= publicInputs[i].name %>: NumericString <%= publicInputs[i].dimensions %>;
+    <%= publicInputs[i].name %>: NumberLike <%= publicInputs[i].dimensions %>;
 <% } -%>
 }
 
