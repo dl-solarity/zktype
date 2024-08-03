@@ -7,7 +7,7 @@ import {
   PublicSignals,
 } from "@solarity/zkit";
 
-import { flatten, reshape } from "<%= pathToUtils %>";
+import { normalizePublicSignals, denormalizePublicSignals } from "<%= pathToUtils %>";
 
 export type <%= privateInputsTypeName %> = {
 <% for (let i = 0; i < privateInputs.length; i++) { -%>
@@ -83,24 +83,11 @@ export class <%= circuitClassName %> extends CircuitZKit {
   }
 
   private _normalizePublicSignals(publicSignals: PublicSignals): <%= publicInputsTypeName %> {
-    const signalNames = this.getSignalNames();
-
-    let index = 0;
-    return signalNames.reduce((acc: any, signalName) => {
-      const dimensions = this.getSignalDimensions(signalName);
-      const size = dimensions.reduce((a, b) => a * b, 1);
-      acc[signalName] = reshape(publicSignals.slice(index, index + size), dimensions);
-      index += size;
-      return acc;
-    }, {});
+    return normalizePublicSignals(publicSignals, this.getSignalNames(), this.getSignalDimensions);
   }
 
   private _denormalizePublicSignals(publicSignals: <%= publicInputsTypeName %>): PublicSignals {
-    const signalNames = this.getSignalNames();
-
-    return signalNames.reduce((acc: any[], signalName) => {
-      return acc.concat(flatten(publicSignals[signalName]));
-    }, []);
+    return denormalizePublicSignals(publicSignals, this.getSignalNames());
   }
 }
 

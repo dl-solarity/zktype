@@ -1,4 +1,29 @@
-export function reshape(array: number[], dimensions: number[]): any {
+import { PublicSignals } from "@solarity/zkit";
+
+export function normalizePublicSignals(
+  publicSignals: any[],
+  signalNames: string[],
+  getSignalDimensions: (name: string) => number[],
+): any {
+  let index = 0;
+  return signalNames.reduce((acc: any, signalName) => {
+    const dimensions = getSignalDimensions(signalName);
+    const size = dimensions.reduce((a, b) => a * b, 1);
+
+    acc[signalName] = reshape(publicSignals.slice(index, index + size), dimensions);
+    index += size;
+
+    return acc;
+  }, {});
+}
+
+export function denormalizePublicSignals(publicSignals: any, signalNames: string[]): PublicSignals {
+  return signalNames.reduce((acc: any[], signalName) => {
+    return acc.concat(flatten(publicSignals[signalName]));
+  }, []);
+}
+
+function reshape(array: number[], dimensions: number[]): any {
   if (dimensions.length === 0) {
     return array[0];
   }
@@ -14,6 +39,6 @@ export function reshape(array: number[], dimensions: number[]): any {
   return result;
 }
 
-export function flatten(array: any): number[] {
+function flatten(array: any): number[] {
   return Array.isArray(array) ? array.flatMap((array) => flatten(array)) : array;
 }
