@@ -15,11 +15,5 @@ export function reshape(array: number[], dimensions: number[]): any {
 }
 
 export function flatten(array: any): number[] {
-  if (!Array.isArray(array)) {
-    return [array];
-  }
-
-  return array.reduce((acc, value) => {
-    return acc.concat(flatten(value));
-  }, []);
+  return Array.isArray(array) ? array.flatMap((array) => flatten(array)) : array;
 }
