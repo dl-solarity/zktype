@@ -23,24 +23,56 @@ describe("Circuit Proof Generation", function () {
     ],
   });
 
-  const config: CircuitZKitConfig = {
+  const basicConfig: CircuitZKitConfig = {
     circuitName: "Basic",
     circuitArtifactsPath: "test/cache/Basic",
+    verifierDirPath: "test/cache",
+  };
+
+  const matrixConfig: CircuitZKitConfig = {
+    circuitName: "Matrix",
+    circuitArtifactsPath: "test/cache/Matrix",
     verifierDirPath: "test/cache",
   };
 
   beforeEach(async () => {
     const preprocessor = await generateAST("test/fixture", astDir, true, [], []);
     await circuitTypesGenerator.generateTypes();
-    await preprocessor.circuitCompiler.compileCircuit("test/fixture/Basic.circom", config.circuitArtifactsPath);
+    await preprocessor.circuitCompiler.compileCircuit("test/fixture/Basic.circom", basicConfig.circuitArtifactsPath);
+    await preprocessor.circuitCompiler.compileCircuit(
+      "test/fixture/auth/Matrix.circom",
+      matrixConfig.circuitArtifactsPath,
+    );
   });
 
-  it("should generate and verify proof", async () => {
+  it("should generate and verify proof for Basic.circom", async () => {
     const object = await circuitTypesGenerator.getCircuitObject("test/fixture/Basic.circom:Multiplier2");
 
-    const circuit = new object(config);
+    const circuit = new object(basicConfig);
 
     const proof = await circuit.generateProof({ in1: 2, in2: 3 });
+    expect(await circuit.verifyProof(proof)).to.be.true;
+  });
+
+  it("should generate and verify proof for Matrix.circom", async () => {
+    const object = await circuitTypesGenerator.getCircuitObject("test/fixture/auth/Matrix.circom:Matrix");
+
+    const circuit = new object(matrixConfig);
+
+    const proof = await circuit.generateProof({
+      a: [
+        [1n, 2n, 3n],
+        [1n, 2n, 3n],
+        [1n, 2n, 3n],
+      ],
+      b: [
+        [1n, 2n, 3n],
+        [1n, 2n, 3n],
+        [1n, 2n, 3n],
+      ],
+      c: 9n,
+    });
+
     expect(await circuit.verifyProof(proof)).to.be.true;
   });
 

@@ -64,7 +64,10 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       .join(".");
   }
 
-  protected async _genCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {
+  protected async _genCircuitWrapperClassContent(
+    circuitArtifact: CircuitArtifact,
+    pathToGeneratedFile: string,
+  ): Promise<string> {
     const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
     let outputCounter: number = 0;
@@ -73,7 +76,11 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     const privateInputs: Inputs[] = circuitArtifact.signals
       .filter((signal) => signal.type != SignalTypeNames.Output)
       .map((signal) => {
-        return { name: signal.name, dimensions: "[]".repeat(signal.dimensions) };
+        return {
+          name: signal.name,
+          dimensions: "[]".repeat(signal.dimensions.length),
+          dimensionsArray: new Array(signal.dimensions).join(", "),
+        };
       });
 
     for (const signal of circuitArtifact.signals) {
@@ -82,15 +89,24 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       }
 
       if (signal.type === SignalTypeNames.Output) {
-        publicInputs.splice(outputCounter, 0, { name: signal.name, dimensions: "[]".repeat(signal.dimensions) });
+        publicInputs.splice(outputCounter, 0, {
+          name: signal.name,
+          dimensions: "[]".repeat(signal.dimensions.length),
+          dimensionsArray: new Array(signal.dimensions).join(", "),
+        });
 
         outputCounter++;
         continue;
       }
 
-      publicInputs.push({ name: signal.name, dimensions: "[]".repeat(signal.dimensions) });
+      publicInputs.push({
+        name: signal.name,
+        dimensions: "[]".repeat(signal.dimensions.length),
+        dimensionsArray: new Array(signal.dimensions).join(", "),
+      });
     }
 
+    const pathToUtils = path.join(this._projectRoot, this.getOutputTypesDir(), "utils");
     const templateParams: WrapperTemplateParams = {
       circuitClassName: this._getCircuitName(circuitArtifact),
       publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),
@@ -99,6 +115,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       privateInputs,
       proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
       privateInputsTypeName: this._getTypeName(circuitArtifact, "Private"),
+      pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
     };
 
     return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });

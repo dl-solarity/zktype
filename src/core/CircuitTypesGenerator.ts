@@ -89,7 +89,8 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
         recursive: true,
       });
 
-      const preparedNode = await this._returnTSDefinitionByArtifact(circuitArtifacts[i]);
+      const pathToGeneratedFile = path.join(this._projectRoot, this.getOutputTypesDir(), circuitTypePath);
+      const preparedNode = await this._returnTSDefinitionByArtifact(circuitArtifacts[i], pathToGeneratedFile);
 
       this._saveFileContent(circuitTypePath, preparedNode);
 
@@ -100,6 +101,11 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     }
 
     await this._resolveTypePaths(typePathsToResolve);
+
+    // copy utils to types output dir
+    const utilsDirPath = path.join(this._projectRoot, this.getOutputTypesDir());
+    fs.mkdirSync(utilsDirPath, { recursive: true });
+    fs.copyFileSync(path.join(__dirname, "templates", "utils.ts"), path.join(utilsDirPath, "utils.ts"));
   }
 
   /**
@@ -246,10 +252,14 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    * ```
    *
    * @param {CircuitArtifact} circuitArtifact - The circuit artifact for which the TypeScript bindings are generated.
+   * @param pathToGeneratedFile - The path to the generated file.
    * @returns {string} The relative to the TYPES_DIR path to the generated file.
    */
-  private async _returnTSDefinitionByArtifact(circuitArtifact: CircuitArtifact): Promise<string> {
-    return await this._genCircuitWrapperClassContent(circuitArtifact);
+  private async _returnTSDefinitionByArtifact(
+    circuitArtifact: CircuitArtifact,
+    pathToGeneratedFile: string,
+  ): Promise<string> {
+    return await this._genCircuitWrapperClassContent(circuitArtifact, pathToGeneratedFile);
   }
 
   /**

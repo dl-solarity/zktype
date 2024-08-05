@@ -26,12 +26,13 @@ export interface CircuitArtifact {
  * @param {SignalType} type - The type of the signal (possible values: `Input`, `Output`).
  * @param {string} visibility - The visibility of the signal (possible values: `public`, `private`).
  * @param {string} internalType - The internal type of the signal (only possible value: `bigint`).
- * @param {number} dimensions - The number of dimensions of the signal. If the signal is a scalar, the value is `0`.
+ * @param {number} dimensions - The array of dimensions of the signal. If the signal is a scalar, the value is `[]`.
+ * For example for a signal a[2][3], the value is `[2, 3]`.
  */
 export interface Signal {
   name: string;
   type: SignalType;
   visibility: SignalVisibility;
   internalType: string;
-  dimensions: number;
+  dimensions: number[];
 }

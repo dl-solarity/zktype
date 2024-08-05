@@ -95,6 +95,7 @@ export default class CircuitArtifactGenerator {
     };
 
     const template = this._findTemplateForCircuit(ast.circomCompilerOutput, circuitArtifact.circuitName);
+    const templateArgs = this.getTemplateArgs(ast.circomCompilerOutput[0].main_component![1].Call.args, template.args);
 
     for (const statement of template.body.Block.stmts) {
       if (
@@ -105,18 +106,109 @@ export default class CircuitArtifactGenerator {
         continue;
       }
 
+      const dimensions = this.resolveDimension(statement.InitializationBlock.initializations[0].Declaration.dimensions);
+      const resolvedDimensions = dimensions.map((dimension: any) => {
+        if (typeof dimension === "string") {
+          const templateArg = templateArgs[dimension];
+
+          if (!templateArg) {
+            throw new Error(
+              `The template argument ${dimension} is missing in the circuit ${circuitArtifact.circuitName}`,
+            );
+          }
+
+          return Number(templateArg);
+        }
+
+        return Number(dimension);
+      });
+
       const signal: Signal = {
         type: statement.InitializationBlock.xtype.Signal[0] as SignalType,
         internalType: this._getInternalType(statement.InitializationBlock.initializations[0].Declaration),
         visibility: this._getSignalVisibility(ast.circomCompilerOutput[0], statement),
         name: statement.InitializationBlock.initializations[0].Declaration.name,
-        dimensions: statement.InitializationBlock.initializations[0].Declaration.dimensions.length,
+        dimensions: resolvedDimensions,
       };
 
       circuitArtifact.signals.push(signal);
     }
 
     return circuitArtifact;
+  }
+
+  private getTemplateArgs(args: string[], names: any[]): Record<string, bigint> {
+    if (args.length === 0) {
+      return {};
+    }
+
+    const result: Record<string, bigint> = {};
+
+    for (let i = 0; i < args.length; i++) {
+      const argObj = (args[i] as any)["Number"];
+
+      result[names[i]] = BigInt(this.resolveNumber(argObj));
+    }
+
+    return result;
+  }
+
+  private resolveVariable(variableObj: any) {
+    if (!variableObj || !variableObj.name) {
+      throw new Error(`The argument ${variableObj} is not a variable`);
+    }
+
+    return variableObj.name;
+  }
+
+  private resolveNumber(numberObj: any) {
+    if (!numberObj || !numberObj.length || numberObj.length < 2) {
+      throw new Error(`The argument ${numberObj} is not a number`);
+    }
+
+    if (!numberObj[1] || !numberObj[1].length || numberObj[1].length < 2) {
+      throw new Error(`The argument ${numberObj} is of unexpected format`);
+    }
+
+    const actualArg = numberObj[1][1];
+
+    if (!actualArg || !actualArg.length || numberObj[1].length < 1) {
+      throw new Error(`The argument ${numberObj} is of unexpected format`);
+    }
+
+    return actualArg[0];
+  }
+
+  private resolveDimension(dimensions: number[]): number[] {
+    const result: number[] = [];
+
+    for (const dimension of dimensions) {
+      if (dimension === 0) {
+        result.push(0);
+
+        continue;
+      }
+
+      const numberObj = (dimension as any)["Number"];
+      const variableObj = (dimension as any)["Variable"];
+
+      if (
+        (numberObj !== undefined && variableObj !== undefined) ||
+        (numberObj === undefined && variableObj === undefined)
+      ) {
+        throw new Error(`The dimension ${dimension} is of unexpected format`);
+      }
+
+      if (numberObj) {
+        result.push(this.resolveNumber(numberObj));
+
+        continue;
+      }
+
+      result.push(this.resolveVariable(variableObj));
+    }
+
+    return result;
   }
 
   /**
