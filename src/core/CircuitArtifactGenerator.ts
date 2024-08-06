@@ -217,7 +217,7 @@ export default class CircuitArtifactGenerator {
    * Cleans the artifacts directory by removing all files and subdirectories.
    */
   public cleanArtifacts(): void {
-    const artifactsDir = path.join(this._projectRoot, this.getOutputArtifactsDir());
+    const artifactsDir = this.getOutputArtifactsDir();
 
     if (fs.existsSync(artifactsDir)) {
       fs.rmSync(artifactsDir, { recursive: true, force: true });
@@ -232,7 +232,7 @@ export default class CircuitArtifactGenerator {
    */
   private _saveArtifact(artifact: CircuitArtifact, commonPath: string = ""): void {
     const circuitArtifactPath = path
-      .join(this._projectRoot, this.getOutputArtifactsDir(), artifact.sourceName.replace(commonPath, ""))
+      .join(this.getOutputArtifactsDir(), artifact.sourceName.replace(commonPath, ""))
       .replace(path.extname(artifact.sourceName), ".json");
 
     fs.mkdirSync(circuitArtifactPath.replace(path.basename(circuitArtifactPath), ""), { recursive: true });

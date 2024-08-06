@@ -111,7 +111,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       calldataPubSignalsCount += this._getPublicSignalsCount(signal);
     }
 
-    const pathToUtils = path.join(this._projectRoot, this.getOutputTypesDir(), "utils");
+    const pathToUtils = path.join(this.getOutputTypesDir(), "utils");
     const templateParams: WrapperTemplateParams = {
       circuitClassName: this._getCircuitName(circuitArtifact),
       publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),

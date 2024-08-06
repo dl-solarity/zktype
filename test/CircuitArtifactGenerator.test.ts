@@ -18,8 +18,6 @@ describe("Circuit Artifact Generation", function () {
     "auth/BasicInAuth.json",
   ];
 
-  let projectRoot = findProjectRoot(__dirname);
-
   const inputDir = "test/fixture";
   const astDir = "test/cache/circuits-ast";
   const artifactGenerator = new CircuitArtifactGenerator({
@@ -36,7 +34,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   function getPathToArtifact(artifactPath: string) {
-    return path.join(projectRoot, artifactGenerator.getOutputArtifactsDir(), artifactPath);
+    return path.join(artifactGenerator.getOutputArtifactsDir(), artifactPath);
   }
 
   beforeEach(async () => {

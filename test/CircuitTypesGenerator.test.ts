@@ -12,8 +12,6 @@ import { CircuitTypesGenerator } from "../src";
 describe("Circuit Types Generation", function () {
   const expectedTypes = ["core/CredentialAtomicQueryMTPOnChainVoting.ts", "core/Multiplier2.ts"];
 
-  let projectRoot = findProjectRoot(__dirname);
-
   const astDir = "test/cache/circuits-ast";
 
   const circuitTypesGenerator = new CircuitTypesGenerator({
@@ -29,7 +27,7 @@ describe("Circuit Types Generation", function () {
   });
 
   function getPathToGeneratedType(generatedTypePath: string) {
-    return path.join(projectRoot, circuitTypesGenerator.getOutputTypesDir(), generatedTypePath);
+    return path.join(circuitTypesGenerator.getOutputTypesDir(), generatedTypePath);
   }
 
   beforeEach(async () => {
