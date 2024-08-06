@@ -65,7 +65,9 @@ export default class CircuitArtifactGenerator {
    * Returns the configuration of the `CircuitArtifactGenerator`.
    */
   public getOutputArtifactsDir(): string {
-    return this._circuitArtifactGeneratorConfig.outputArtifactsDir ?? "artifacts/circuits";
+    const relativePath: string = this._circuitArtifactGeneratorConfig.outputArtifactsDir ?? "artifacts/circuits";
+
+    return path.join(this._projectRoot, relativePath);
   }
 
   /**

@@ -41,7 +41,9 @@ export default class BaseTSGenerator {
    * Returns the path to the output directory for the generated TypeScript files.
    */
   public getOutputTypesDir(): string {
-    return this._zktypeConfig.outputTypesDir ?? "generated-types/circuits";
+    const relativePath: string = this._zktypeConfig.outputTypesDir ?? "generated-types/circuits";
+
+    return path.join(this._projectRoot, relativePath);
   }
 
   /**
