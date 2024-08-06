@@ -11,6 +11,7 @@ import {
   CircuitArtifact,
   CircuitClass,
   Inputs,
+  Signal,
   TypeExtensionTemplateParams,
   WrapperTemplateParams,
 } from "../types";
@@ -83,6 +84,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         };
       });
 
+    let calldataPubSignalsCount = 0;
     for (const signal of circuitArtifact.signals) {
       if (signal.visibility === SignalVisibilityNames.Private) {
         continue;
@@ -95,6 +97,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
           dimensionsArray: new Array(signal.dimensions).join(", "),
         });
 
+        calldataPubSignalsCount += this._getPublicSignalsCount(signal);
         outputCounter++;
         continue;
       }
@@ -104,13 +107,15 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         dimensions: "[]".repeat(signal.dimensions.length),
         dimensionsArray: new Array(signal.dimensions).join(", "),
       });
+
+      calldataPubSignalsCount += this._getPublicSignalsCount(signal);
     }
 
     const pathToUtils = path.join(this._projectRoot, this.getOutputTypesDir(), "utils");
     const templateParams: WrapperTemplateParams = {
       circuitClassName: this._getCircuitName(circuitArtifact),
       publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),
-      calldataPubSignalsType: this._getCalldataPubSignalsType(publicInputs.length),
+      calldataPubSignalsType: this._getCalldataPubSignalsType(calldataPubSignalsCount),
       publicInputs,
       privateInputs,
       proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
@@ -125,5 +130,13 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     const calldataType = new Array(pubSignalsCount).fill(ts.factory.createTypeReferenceNode("NumericString"));
 
     return this._getNodeContent(ts.factory.createTupleTypeNode(calldataType));
+  }
+
+  private _getPublicSignalsCount(signal: Signal): number {
+    if (signal.dimensions.length === 0) {
+      return 1;
+    }
+
+    return signal.dimensions.reduce((acc, dim) => acc * dim, 1);
   }
 }

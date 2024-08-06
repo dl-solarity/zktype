@@ -52,6 +52,9 @@ describe("Circuit Proof Generation", function () {
 
     const proof = await circuit.generateProof({ in1: 2, in2: 3 });
     expect(await circuit.verifyProof(proof)).to.be.true;
+
+    const calldata = await circuit.generateCalldata(proof);
+    expect(calldata[3].length).to.equal(2);
   });
 
   it("should generate and verify proof for Matrix.circom", async () => {
@@ -74,6 +77,9 @@ describe("Circuit Proof Generation", function () {
     });
 
     expect(await circuit.verifyProof(proof)).to.be.true;
+
+    const calldata = await circuit.generateCalldata(proof);
+    expect(calldata[3].length).to.equal(36);
   });
 
   it("should correctly import all of the zktype objects", async () => {
