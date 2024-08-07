@@ -11,6 +11,10 @@ export interface Inputs {
   dimensionsArray: string;
 }
 
+export interface DefaultWrapperTemplateParams {
+  circuitClassName: string;
+}
+
 export interface WrapperTemplateParams {
   publicInputsTypeName: string;
   privateInputs: Inputs[];

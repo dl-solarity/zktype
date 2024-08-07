@@ -1,0 +1,37 @@
+import {
+  Signals,
+  Calldata,
+  ProofStruct,
+  CircuitZKit,
+  CircuitZKitConfig
+} from "@solarity/zkit";
+
+export class <%= circuitClassName %> extends CircuitZKit {
+  constructor(config: CircuitZKitConfig) {
+    super(config);
+  }
+
+  public async generateProof(inputs: Signals): Promise<ProofStruct> {
+    return super.generateProof(inputs);
+  }
+
+  public async calculateWitness(inputs: Signals): Promise<bigint[]> {
+    return super.calculateWitness(inputs);
+  }
+
+  public async verifyProof(proof: ProofStruct): Promise<boolean> {
+    return super.verifyProof({
+      proof: proof.proof,
+      publicSignals: proof.publicSignals,
+    });
+  }
+
+  public async generateCalldata(proof: ProofStruct): Promise<Calldata> {
+    return super.generateCalldata({
+      proof: proof.proof,
+      publicSignals: proof.publicSignals,
+    });
+  }
+}
+
+export default <%= circuitClassName %>;

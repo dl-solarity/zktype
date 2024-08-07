@@ -5,6 +5,7 @@ import { InternalType, SignalTypeNames, SignalVisibilityNames } from "../constan
 import {
   Stmt,
   Signal,
+  Result,
   Template,
   CircuitAST,
   SignalType,
@@ -30,6 +31,11 @@ export default class CircuitArtifactGenerator {
    */
   public static readonly CURRENT_FORMAT: string = "zktype-circom-artifact-1";
 
+  /**
+   * The default format version of the circuit artifact.
+   */
+  public static readonly DEFAULT_CIRCUIT_FORMAT: string = "zktype-circom-artifact-default";
+
   private readonly _projectRoot: string;
   private readonly _circuitArtifactGeneratorConfig: ArtifactGeneratorConfig;
 
@@ -45,20 +51,22 @@ export default class CircuitArtifactGenerator {
   /**
    * Generates circuit artifacts based on the ASTs.
    */
-  public async generateCircuitArtifacts(): Promise<void> {
+  public async generateCircuitArtifacts(): Promise<string[]> {
     const astFilePaths = this._circuitArtifactGeneratorConfig.circuitsASTPaths;
 
-    for (const astFilePath of astFilePaths) {
-      const circuitArtifact = await this.extractArtifact(astFilePath);
+    const errors: string[] = [];
 
-      this._saveArtifact(
-        {
-          ...circuitArtifact,
-          basePath: this._circuitArtifactGeneratorConfig.basePath,
-        },
-        this._circuitArtifactGeneratorConfig.basePath,
-      );
+    for (const astFilePath of astFilePaths) {
+      const circuitArtifact = await this.getCircuitArtifact(astFilePath);
+
+      if (circuitArtifact.error) {
+        errors.push(circuitArtifact.error);
+      }
+
+      this._saveArtifact(circuitArtifact.data, this._circuitArtifactGeneratorConfig.basePath);
     }
+
+    return errors;
   }
 
   /**
@@ -75,70 +83,36 @@ export default class CircuitArtifactGenerator {
    *
    * All the fields that are required for the artifact are extracted from the AST are validated.
    *
+   * Will throw an error if:
+   * - The AST is missing.
+   * - _validateCircuitAST function fails.
+   *
+   * Will return an error if failed to get necessary information from the AST.
+   *
    * @param {string} pathToTheAST - The path to the AST JSON file.
    * @returns {Promise<CircuitArtifact>} A promise that resolves to the extracted circuit artifact.
    */
-  public async extractArtifact(pathToTheAST: string): Promise<CircuitArtifact> {
-    const ast: CircuitAST | undefined = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
-
-    if (!ast) {
-      throw new Error(`The circuit AST is missing. Path: ${pathToTheAST}`);
-    }
-
-    this._validateCircuitAST(ast);
-
-    const circuitArtifact: CircuitArtifact = {
-      _format: CircuitArtifactGenerator.CURRENT_FORMAT,
-      circuitName: ast.circomCompilerOutput[0].main_component![1].Call.id,
-      sourceName: ast.sourcePath,
-      basePath: "",
-      compilerVersion: ast.circomCompilerOutput[0].compiler_version.join("."),
-      signals: [],
-    };
-
-    const template = this._findTemplateForCircuit(ast.circomCompilerOutput, circuitArtifact.circuitName);
-    const templateArgs = this.getTemplateArgs(ast.circomCompilerOutput[0].main_component![1].Call.args, template.args);
-
-    for (const statement of template.body.Block.stmts) {
-      if (
-        !statement.InitializationBlock ||
-        !this._validateInitializationBlock(ast.sourcePath, statement.InitializationBlock) ||
-        statement.InitializationBlock.xtype.Signal[0] === SignalTypeNames.Intermediate
-      ) {
-        continue;
-      }
-
-      const dimensions = this.resolveDimension(statement.InitializationBlock.initializations[0].Declaration.dimensions);
-      const resolvedDimensions = dimensions.map((dimension: any) => {
-        if (typeof dimension === "string") {
-          const templateArg = templateArgs[dimension];
-
-          if (!templateArg) {
-            throw new Error(
-              `The template argument ${dimension} is missing in the circuit ${circuitArtifact.circuitName}`,
-            );
-          }
-
-          return Number(templateArg);
-        }
-
-        return Number(dimension);
-      });
-
-      const signal: Signal = {
-        type: statement.InitializationBlock.xtype.Signal[0] as SignalType,
-        internalType: this._getInternalType(statement.InitializationBlock.initializations[0].Declaration),
-        visibility: this._getSignalVisibility(ast.circomCompilerOutput[0], statement),
-        name: statement.InitializationBlock.initializations[0].Declaration.name,
-        dimensions: resolvedDimensions,
+  public async getCircuitArtifact(pathToTheAST: string): Promise<Result<CircuitArtifact>> {
+    try {
+      return {
+        data: await this._extractArtifact(pathToTheAST),
+        error: null,
       };
-
-      circuitArtifact.signals.push(signal);
+    } catch (error: any) {
+      return {
+        data: this._getDefaultArtifact(pathToTheAST, CircuitArtifactGenerator.DEFAULT_CIRCUIT_FORMAT),
+        error: error!.message,
+      };
     }
-
-    return circuitArtifact;
   }
 
+  /**
+   * Returns the template arguments for the circuit.
+   *
+   * @param {string[]} args - The arguments of the template.
+   * @param {any[]} names - The names of the arguments.
+   * @returns {Record<string, bigint>} The template arguments for the circuit.
+   */
   private getTemplateArgs(args: string[], names: any[]): Record<string, bigint> {
     if (args.length === 0) {
       return {};
@@ -155,6 +129,9 @@ export default class CircuitArtifactGenerator {
     return result;
   }
 
+  /**
+   * Resolves the variable from
+   */
   private resolveVariable(variableObj: any) {
     if (!variableObj || !variableObj.name) {
       throw new Error(`The argument ${variableObj} is not a variable`);
@@ -163,6 +140,9 @@ export default class CircuitArtifactGenerator {
     return variableObj.name;
   }
 
+  /**
+   * Resolves the number from the AST.
+   */
   private resolveNumber(numberObj: any) {
     if (!numberObj || !numberObj.length || numberObj.length < 2) {
       throw new Error(`The argument ${numberObj} is not a number`);
@@ -181,6 +161,9 @@ export default class CircuitArtifactGenerator {
     return actualArg[0];
   }
 
+  /**
+   * Resolves the dimensions of the signal.
+   */
   private resolveDimension(dimensions: number[]): number[] {
     const result: number[] = [];
 
@@ -304,6 +287,90 @@ export default class CircuitArtifactGenerator {
     }
 
     throw new Error(`The template for the circuit ${circuitName} could not be found.`);
+  }
+
+  /**
+   * Extracts the artifact information from the AST JSON file.
+   *
+   * @param {string} pathToTheAST - The path to the AST JSON file.
+   * @returns {Promise<CircuitArtifact>} A promise that resolves to the extracted circuit artifact.
+   */
+  private async _extractArtifact(pathToTheAST: string): Promise<CircuitArtifact> {
+    const ast: CircuitAST | undefined = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
+
+    if (!ast) {
+      throw new Error(`The circuit AST is missing. Path: ${pathToTheAST}`);
+    }
+
+    const circuitArtifact: CircuitArtifact = this._getDefaultArtifact(pathToTheAST);
+
+    const template = this._findTemplateForCircuit(ast.circomCompilerOutput, circuitArtifact.circuitName);
+    const templateArgs = this.getTemplateArgs(ast.circomCompilerOutput[0].main_component![1].Call.args, template.args);
+
+    for (const statement of template.body.Block.stmts) {
+      if (
+        !statement.InitializationBlock ||
+        !this._validateInitializationBlock(ast.sourcePath, statement.InitializationBlock) ||
+        statement.InitializationBlock.xtype.Signal[0] === SignalTypeNames.Intermediate
+      ) {
+        continue;
+      }
+
+      const dimensions = this.resolveDimension(statement.InitializationBlock.initializations[0].Declaration.dimensions);
+      const resolvedDimensions = dimensions.map((dimension: any) => {
+        if (typeof dimension === "string") {
+          const templateArg = templateArgs[dimension];
+
+          if (!templateArg) {
+            throw new Error(
+              `The template argument ${dimension} is missing in the circuit ${circuitArtifact.circuitName}`,
+            );
+          }
+
+          return Number(templateArg);
+        }
+
+        return Number(dimension);
+      });
+
+      const signal: Signal = {
+        type: statement.InitializationBlock.xtype.Signal[0] as SignalType,
+        internalType: this._getInternalType(statement.InitializationBlock.initializations[0].Declaration),
+        visibility: this._getSignalVisibility(ast.circomCompilerOutput[0], statement),
+        name: statement.InitializationBlock.initializations[0].Declaration.name,
+        dimensions: resolvedDimensions,
+      };
+
+      circuitArtifact.signals.push(signal);
+    }
+
+    return circuitArtifact;
+  }
+
+  /**
+   * Creates a default circuit artifact.
+   *
+   * @param {string} pathToTheAST - The path to the AST JSON file.
+   * @param {string} format - The format of the circuit artifact.
+   * @returns {CircuitArtifact} The default circuit artifact.
+   */
+  private _getDefaultArtifact(pathToTheAST: string, format?: string): CircuitArtifact {
+    const ast: CircuitAST | undefined = JSON.parse(fs.readFileSync(pathToTheAST, "utf-8"));
+
+    if (!ast) {
+      throw new Error(`The circuit AST is missing. Path: ${pathToTheAST}`);
+    }
+
+    this._validateCircuitAST(ast);
+
+    return {
+      _format: format ?? CircuitArtifactGenerator.CURRENT_FORMAT,
+      circuitName: ast.circomCompilerOutput[0].main_component![1].Call.id,
+      sourceName: ast.sourcePath,
+      basePath: this._circuitArtifactGeneratorConfig.basePath,
+      compilerVersion: ast.circomCompilerOutput[0].compiler_version.join("."),
+      signals: [],
+    };
   }
 
   /**

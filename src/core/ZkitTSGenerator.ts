@@ -13,6 +13,7 @@ import {
   Inputs,
   Signal,
   TypeExtensionTemplateParams,
+  DefaultWrapperTemplateParams,
   WrapperTemplateParams,
 } from "../types";
 
@@ -121,6 +122,16 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
       privateInputsTypeName: this._getTypeName(circuitArtifact, "Private"),
       pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
+    };
+
+    return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
+  }
+
+  protected async _genDefaultCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {
+    const template = fs.readFileSync(path.join(__dirname, "templates", "default-circuit-wrapper.ts.ejs"), "utf8");
+
+    const templateParams: DefaultWrapperTemplateParams = {
+      circuitClassName: this._getCircuitName(circuitArtifact),
     };
 
     return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });

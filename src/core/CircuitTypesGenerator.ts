@@ -3,6 +3,7 @@ import path from "path";
 import ts from "typescript";
 
 import ZkitTSGenerator from "./ZkitTSGenerator";
+import CircuitArtifactGenerator from "./CircuitArtifactGenerator";
 
 import { normalizeName } from "../utils";
 
@@ -54,8 +55,8 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    *
    * @returns {Promise<void>} A promise that resolves when all types have been generated.
    */
-  public async generateTypes(): Promise<void> {
-    await this._artifactsGenerator.generateCircuitArtifacts();
+  public async generateTypes(): Promise<string[]> {
+    const errorsWhenGenArtifacts = await this._artifactsGenerator.generateCircuitArtifacts();
 
     const circuitArtifacts = this._fetchCircuitArtifacts();
 
@@ -105,6 +106,8 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     const utilsDirPath = this.getOutputTypesDir();
     fs.mkdirSync(utilsDirPath, { recursive: true });
     fs.copyFileSync(path.join(__dirname, "templates", "utils.ts"), path.join(utilsDirPath, "utils.ts"));
+
+    return errorsWhenGenArtifacts;
   }
 
   /**
@@ -255,7 +258,14 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
   ): Promise<string> {
-    return await this._genCircuitWrapperClassContent(circuitArtifact, pathToGeneratedFile);
+    switch (circuitArtifact._format) {
+      case CircuitArtifactGenerator.CURRENT_FORMAT:
+        return await this._genCircuitWrapperClassContent(circuitArtifact, pathToGeneratedFile);
+      case CircuitArtifactGenerator.DEFAULT_CIRCUIT_FORMAT:
+        return await this._genDefaultCircuitWrapperClassContent(circuitArtifact);
+      default:
+        throw new Error(`Unsupported format: ${circuitArtifact._format}`);
+    }
   }
 
   /**

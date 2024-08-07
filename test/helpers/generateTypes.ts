@@ -11,6 +11,7 @@ const circuitTypesGenerator = new CircuitTypesGenerator({
   projectRoot: findProjectRoot(process.cwd()),
   circuitsASTPaths: [
     "test/cache/circuits-ast/Basic.json",
+    "test/cache/circuits-ast/ComplexMain.json",
     "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",
     "test/cache/circuits-ast/lib/BasicInLib.json",
     "test/cache/circuits-ast/auth/EMultiplier.json",
