@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.2.7]
+
+* Improved error messages during the artifact extraction process
+
 ## [v0.2.4-v0.2.6]
 
 * Added ability to recover after error during artifact extraction
