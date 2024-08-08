@@ -17,6 +17,7 @@ import {
 } from "../types";
 
 import { ASTParserError } from "../errors";
+import { ErrorObj } from "../errors/common";
 
 /**
  * `CircuitArtifactGenerator` is responsible for generating circuit artifacts based on the AST files.
@@ -53,10 +54,10 @@ export default class CircuitArtifactGenerator {
   /**
    * Generates circuit artifacts based on the ASTs.
    */
-  public async generateCircuitArtifacts(): Promise<string[]> {
+  public async generateCircuitArtifacts(): Promise<ErrorObj[]> {
     const astFilePaths = this._circuitArtifactGeneratorConfig.circuitsASTPaths;
 
-    const errors: string[] = [];
+    const errors: ErrorObj[] = [];
 
     for (const astFilePath of astFilePaths) {
       const circuitArtifact = await this.getCircuitArtifact(astFilePath);
@@ -100,10 +101,10 @@ export default class CircuitArtifactGenerator {
         data: await this._extractArtifact(pathToTheAST),
         error: null,
       };
-    } catch (error: any) {
+    } catch (error: any | ASTParserError) {
       return {
         data: this._getDefaultArtifact(pathToTheAST, CircuitArtifactGenerator.DEFAULT_CIRCUIT_FORMAT),
-        error: error!.message,
+        error: error,
       };
     }
   }

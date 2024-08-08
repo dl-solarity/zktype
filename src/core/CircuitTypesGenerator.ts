@@ -8,6 +8,7 @@ import CircuitArtifactGenerator from "./CircuitArtifactGenerator";
 import { normalizeName } from "../utils";
 
 import { CircuitArtifact, ArtifactWithPath } from "../types";
+import { ErrorObj } from "../errors/common";
 
 /**
  * `CircuitTypesGenerator` is need for generating TypeScript bindings based on circuit artifacts.
@@ -55,7 +56,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    *
    * @returns {Promise<void>} A promise that resolves when all types have been generated.
    */
-  public async generateTypes(): Promise<string[]> {
+  public async generateTypes(): Promise<ErrorObj[]> {
     const errorsWhenGenArtifacts = await this._artifactsGenerator.generateCircuitArtifacts();
 
     const circuitArtifacts = this._fetchCircuitArtifacts();

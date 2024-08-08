@@ -1,4 +1,6 @@
+import { ASTParserError } from "../errors";
+
 export interface Result<T> {
   data: T;
-  error: string | null;
+  error: { message: string } | ASTParserError | null;
 }
