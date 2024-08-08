@@ -16,6 +16,8 @@ import {
   ArtifactGeneratorConfig,
 } from "../types";
 
+import { ASTParserError } from "../errors";
+
 /**
  * `CircuitArtifactGenerator` is responsible for generating circuit artifacts based on the AST files.
  *
@@ -135,8 +137,10 @@ export default class CircuitArtifactGenerator {
    */
   private resolveVariable(circuitArtifact: CircuitArtifact, variableObj: any) {
     if (!variableObj || !variableObj.name) {
-      throw new Error(
-        `${this._getCircuitFullName(circuitArtifact)}: The argument (see below) is not a variable\n${JSON.stringify(variableObj)}`,
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The argument is not a variable`,
+        variableObj,
       );
     }
 
@@ -148,22 +152,24 @@ export default class CircuitArtifactGenerator {
    */
   private resolveNumber(circuitArtifact: CircuitArtifact, numberObj: any) {
     if (!numberObj || !numberObj.length || numberObj.length < 2) {
-      throw new Error(
-        `${this._getCircuitFullName(circuitArtifact)}: The argument (see below) is not a number\n${JSON.stringify(numberObj)}`,
-      );
+      throw new ASTParserError(this._getCircuitFullName(circuitArtifact), `The argument is not a number`, numberObj);
     }
 
     if (!numberObj[1] || !numberObj[1].length || numberObj[1].length < 2) {
-      throw new Error(
-        `${this._getCircuitFullName(circuitArtifact)}: The argument (see below) is of unexpected format\n${JSON.stringify(numberObj)}`,
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The argument is of unexpected format`,
+        numberObj,
       );
     }
 
     const actualArg = numberObj[1][1];
 
     if (!actualArg || !actualArg.length || numberObj[1].length < 1) {
-      throw new Error(
-        `${this._getCircuitFullName(circuitArtifact)}: The argument (see below) is of unexpected format\n${JSON.stringify(numberObj)}`,
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The argument is of unexpected format`,
+        actualArg,
       );
     }
 
@@ -190,8 +196,10 @@ export default class CircuitArtifactGenerator {
         (numberObj !== undefined && variableObj !== undefined) ||
         (numberObj === undefined && variableObj === undefined)
       ) {
-        throw new Error(
-          `${this._getCircuitFullName(circuitArtifact)}: The dimension (see below) is of unexpected format\n${JSON.stringify(dimension)}`,
+        throw new ASTParserError(
+          this._getCircuitFullName(circuitArtifact),
+          `The dimension is of unexpected format`,
+          dimension,
         );
       }
 
@@ -297,7 +305,11 @@ export default class CircuitArtifactGenerator {
       }
     }
 
-    throw new Error(`${this._getCircuitFullName(circuitArtifact)}: The template for the circuit could not be found.`);
+    throw new ASTParserError(
+      this._getCircuitFullName(circuitArtifact),
+      `The template for the circuit could not be found.`,
+      undefined,
+    );
   }
 
   /**
@@ -340,8 +352,10 @@ export default class CircuitArtifactGenerator {
           const templateArg = templateArgs[dimension];
 
           if (!templateArg) {
-            throw new Error(
-              `${this._getCircuitFullName(circuitArtifact)}: The template argument (see below) is missing in the circuit ${circuitArtifact.circuitName}\n${JSON.stringify(dimension)}`,
+            throw new ASTParserError(
+              this._getCircuitFullName(circuitArtifact),
+              `The template argument is missing in the circuit ${circuitArtifact.circuitName}`,
+              dimension,
             );
           }
 
@@ -437,8 +451,10 @@ export default class CircuitArtifactGenerator {
     initializationBlock: any,
   ): boolean {
     if (!initializationBlock.xtype) {
-      throw new Error(
-        `${this._getCircuitFullName(circuitArtifact)}: The initialization block xtype is missing in the circuit AST: ${astSourcePath}`,
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The initialization block xtype is missing in the circuit AST`,
+        initializationBlock,
       );
     }
 
@@ -448,8 +464,10 @@ export default class CircuitArtifactGenerator {
       !initializationBlock.initializations[0].Declaration ||
       !initializationBlock.initializations[0].Declaration.name
     ) {
-      throw new Error(
-        `${this._getCircuitFullName(circuitArtifact)}: The initializations field of initialization block is missing or incomplete in the circuit AST: ${astSourcePath}`,
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The initializations field of initialization block is missing or incomplete in the circuit AST: ${astSourcePath}`,
+        initializationBlock,
       );
     }
 
