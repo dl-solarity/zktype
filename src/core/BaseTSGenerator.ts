@@ -41,7 +41,9 @@ export default class BaseTSGenerator {
    * Returns the path to the output directory for the generated TypeScript files.
    */
   public getOutputTypesDir(): string {
-    return this._zktypeConfig.outputTypesDir ?? "generated-types/circuits";
+    const relativePath: string = this._zktypeConfig.outputTypesDir ?? "generated-types/circuits";
+
+    return path.join(this._projectRoot, relativePath);
   }
 
   /**
@@ -58,16 +60,13 @@ export default class BaseTSGenerator {
    * @param {string} content - The content to be saved.
    */
   protected _saveFileContent(typePath: string, content: string): void {
-    if (!fs.existsSync(path.join(this._projectRoot, this.getOutputTypesDir(), path.dirname(typePath)))) {
-      fs.mkdirSync(path.join(this._projectRoot, this.getOutputTypesDir(), path.dirname(typePath)), {
+    if (!fs.existsSync(path.join(this.getOutputTypesDir(), path.dirname(typePath)))) {
+      fs.mkdirSync(path.join(this.getOutputTypesDir(), path.dirname(typePath)), {
         recursive: true,
       });
     }
 
-    fs.writeFileSync(
-      path.join(this._projectRoot, this.getOutputTypesDir(), typePath),
-      [this._getPreamble(), content].join("\n\n"),
-    );
+    fs.writeFileSync(path.join(this.getOutputTypesDir(), typePath), [this._getPreamble(), content].join("\n\n"));
   }
 
   /**
@@ -179,7 +178,7 @@ export default class BaseTSGenerator {
    * Expects to get the path to the circuit file, relative to the directory where the generated types are stored.
    */
   protected _checkIfCircuitExists(pathToCircuit: string): boolean {
-    const pathFromRoot = path.join(this._projectRoot, this.getOutputTypesDir(), pathToCircuit);
+    const pathFromRoot = path.join(this.getOutputTypesDir(), pathToCircuit);
 
     return fs.existsSync(pathFromRoot);
   }

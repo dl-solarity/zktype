@@ -18,8 +18,6 @@ describe("Circuit Artifact Generation", function () {
     "auth/BasicInAuth.json",
   ];
 
-  let projectRoot = findProjectRoot(__dirname);
-
   const inputDir = "test/fixture";
   const astDir = "test/cache/circuits-ast";
   const artifactGenerator = new CircuitArtifactGenerator({
@@ -36,7 +34,7 @@ describe("Circuit Artifact Generation", function () {
   });
 
   function getPathToArtifact(artifactPath: string) {
-    return path.join(projectRoot, artifactGenerator.getOutputArtifactsDir(), artifactPath);
+    return path.join(artifactGenerator.getOutputArtifactsDir(), artifactPath);
   }
 
   beforeEach(async () => {
@@ -60,39 +58,41 @@ describe("Circuit Artifact Generation", function () {
   });
 
   it("should throw an error if the compiler version field is missing", async function () {
-    await expect(artifactGenerator.extractArtifact("test/mocks/InvalidCompilerVersion.json")).to.be.rejectedWith(
+    await expect(artifactGenerator.getCircuitArtifact("test/mocks/InvalidCompilerVersion.json")).to.be.rejectedWith(
       "The compiler version is missing in the circuit AST: test/fixture/InvalidCompilerVersion.circom",
     );
   });
 
-  it("should throw an error if the name in the initialization block is missing", async function () {
-    await expect(
-      artifactGenerator.extractArtifact("test/mocks/InvalidInitializationBlockName.json"),
-    ).to.be.rejectedWith(
+  it("should return an error if the name in the initialization block is missing", async function () {
+    const result = await artifactGenerator.getCircuitArtifact("test/mocks/InvalidInitializationBlockName.json");
+
+    expect(result.error).to.be.equal(
       "The initializations field of initialization block is missing or incomplete in the circuit AST: test/fixture/InvalidInitializationBlockName.circom",
     );
   });
 
   it("should throw an error if the main component is missing", async function () {
-    await expect(artifactGenerator.extractArtifact("test/mocks/InvalidMainComponent.json")).to.be.rejectedWith(
+    await expect(artifactGenerator.getCircuitArtifact("test/mocks/InvalidMainComponent.json")).to.be.rejectedWith(
       "The main component is missing or incomplete in the circuit AST: test/fixture/InvalidMainComponent.circom",
     );
   });
 
   it("should throw an error if the id of the main component is missing", async function () {
-    await expect(artifactGenerator.extractArtifact("test/mocks/InvalidMainComponentId.json")).to.be.rejectedWith(
+    await expect(artifactGenerator.getCircuitArtifact("test/mocks/InvalidMainComponentId.json")).to.be.rejectedWith(
       "The main component id is missing in the circuit AST: test/fixture/InvalidMainComponentId.circom",
     );
   });
 
-  it("should throw an error if the template block is missing", async function () {
-    await expect(artifactGenerator.extractArtifact("test/mocks/InvalidTemplateBlock.json")).to.be.rejectedWith(
-      "The template for the circuit Multiplier2 could not be found.",
-    );
+  it("should return an error if the template block is missing", async function () {
+    const result = await artifactGenerator.getCircuitArtifact("test/mocks/InvalidTemplateBlock.json");
+
+    expect(result.error).to.be.equal("The template for the circuit Multiplier2 could not be found.");
   });
 
-  it("should throw an error if the xtype of the initialization block is missing", async function () {
-    await expect(artifactGenerator.extractArtifact("test/mocks/InvalidXTypeField.json")).to.be.rejectedWith(
+  it("should return an error if the xtype of the initialization block is missing", async function () {
+    const result = await artifactGenerator.getCircuitArtifact("test/mocks/InvalidXTypeField.json");
+
+    expect(result.error).to.be.equal(
       "The initialization block xtype is missing in the circuit AST: test/fixture/InvalidXTypeField.circom",
     );
   });

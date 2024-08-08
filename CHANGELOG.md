@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.2.4-v0.2.6]
+
+* Added ability to recover after error during artifact extraction
+* Fixed bug with the linearization of public signals
+* Changed Public signals type to NumberLike
+* Added calculateWitness method to the wrapper class
+
 ## [v0.2.2-v0.2.3]
 
 - Fixed bug during the package publishing process

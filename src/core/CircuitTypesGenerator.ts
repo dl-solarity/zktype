@@ -3,7 +3,7 @@ import path from "path";
 import ts from "typescript";
 
 import ZkitTSGenerator from "./ZkitTSGenerator";
-import BaseTSGenerator from "./BaseTSGenerator";
+import CircuitArtifactGenerator from "./CircuitArtifactGenerator";
 
 import { normalizeName } from "../utils";
 
@@ -22,7 +22,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    * Returns an object that represents the circuit class based on the circuit name.
    */
   public async getCircuitObject(circuitName: string): Promise<any> {
-    const pathToGeneratedTypes = path.join(this._projectRoot, this.getOutputTypesDir());
+    const pathToGeneratedTypes = this.getOutputTypesDir();
 
     const module = await import(pathToGeneratedTypes);
 
@@ -55,8 +55,8 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    *
    * @returns {Promise<void>} A promise that resolves when all types have been generated.
    */
-  public async generateTypes(): Promise<void> {
-    await this._artifactsGenerator.generateCircuitArtifacts();
+  public async generateTypes(): Promise<string[]> {
+    const errorsWhenGenArtifacts = await this._artifactsGenerator.generateCircuitArtifacts();
 
     const circuitArtifacts = this._fetchCircuitArtifacts();
 
@@ -85,11 +85,11 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
         );
       }
 
-      fs.mkdirSync(path.join(this._projectRoot, this.getOutputTypesDir(), path.dirname(circuitTypePath)), {
+      fs.mkdirSync(path.join(this.getOutputTypesDir(), path.dirname(circuitTypePath)), {
         recursive: true,
       });
 
-      const pathToGeneratedFile = path.join(this._projectRoot, this.getOutputTypesDir(), circuitTypePath);
+      const pathToGeneratedFile = path.join(this.getOutputTypesDir(), circuitTypePath);
       const preparedNode = await this._returnTSDefinitionByArtifact(circuitArtifacts[i], pathToGeneratedFile);
 
       this._saveFileContent(circuitTypePath, preparedNode);
@@ -103,9 +103,11 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     await this._resolveTypePaths(typePathsToResolve);
 
     // copy utils to types output dir
-    const utilsDirPath = path.join(this._projectRoot, this.getOutputTypesDir());
+    const utilsDirPath = this.getOutputTypesDir();
     fs.mkdirSync(utilsDirPath, { recursive: true });
     fs.copyFileSync(path.join(__dirname, "templates", "utils.ts"), path.join(utilsDirPath, "utils.ts"));
+
+    return errorsWhenGenArtifacts;
   }
 
   /**
@@ -114,7 +116,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    * @param {ArtifactWithPath[]} typePaths - The paths to the generated files and the corresponding circuit artifacts.
    */
   private async _resolveTypePaths(typePaths: ArtifactWithPath[]): Promise<void> {
-    const rootTypesDirPath = path.join(this._projectRoot, this.getOutputTypesDir());
+    const rootTypesDirPath = this.getOutputTypesDir();
     const pathToMainIndexFile = path.join(rootTypesDirPath, "index.ts");
 
     // index file path => its content
@@ -156,7 +158,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
       if (!isCircuitNameExist.has(typePath.circuitArtifact.circuitName)) {
         indexFilesMap.set(pathToMainIndexFile, [
           ...(indexFilesMap.get(pathToMainIndexFile) === undefined ? [] : indexFilesMap.get(pathToMainIndexFile)!),
-          this._getExportDeclarationForFile(path.relative(path.join(this._projectRoot), levels.join(path.sep))),
+          this._getExportDeclarationForFile(path.relative(this._projectRoot, levels.join(path.sep))),
         ]);
       }
 
@@ -169,16 +171,13 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     }
 
     for (const [absolutePath, content] of indexFilesMap) {
-      this._saveFileContent(
-        path.relative(path.join(this._projectRoot, this.getOutputTypesDir()), absolutePath),
-        content.join("\n"),
-      );
+      this._saveFileContent(path.relative(this.getOutputTypesDir(), absolutePath), content.join("\n"));
     }
 
     const pathToTypesExtensionFile = path.join(rootTypesDirPath, "hardhat.d.ts");
 
     this._saveFileContent(
-      path.relative(path.join(this._projectRoot, this.getOutputTypesDir()), pathToTypesExtensionFile),
+      path.relative(this.getOutputTypesDir(), pathToTypesExtensionFile),
       await this._genHardhatZkitTypeExtension(topLevelCircuits),
     );
   }
@@ -259,7 +258,14 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
   ): Promise<string> {
-    return await this._genCircuitWrapperClassContent(circuitArtifact, pathToGeneratedFile);
+    switch (circuitArtifact._format) {
+      case CircuitArtifactGenerator.CURRENT_FORMAT:
+        return await this._genCircuitWrapperClassContent(circuitArtifact, pathToGeneratedFile);
+      case CircuitArtifactGenerator.DEFAULT_CIRCUIT_FORMAT:
+        return await this._genDefaultCircuitWrapperClassContent(circuitArtifact);
+      default:
+        throw new Error(`Unsupported format: ${circuitArtifact._format}`);
+    }
   }
 
   /**

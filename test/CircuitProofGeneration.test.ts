@@ -35,6 +35,12 @@ describe("Circuit Proof Generation", function () {
     verifierDirPath: "test/cache",
   };
 
+  const complexMainConfig: CircuitZKitConfig = {
+    circuitName: "ComplexMain",
+    circuitArtifactsPath: "test/cache/ComplexMain",
+    verifierDirPath: "test/cache",
+  };
+
   beforeEach(async () => {
     const preprocessor = await generateAST("test/fixture", astDir, true, [], []);
     await circuitTypesGenerator.generateTypes();
@@ -42,6 +48,10 @@ describe("Circuit Proof Generation", function () {
     await preprocessor.circuitCompiler.compileCircuit(
       "test/fixture/auth/Matrix.circom",
       matrixConfig.circuitArtifactsPath,
+    );
+    await preprocessor.circuitCompiler.compileCircuit(
+      "test/fixture/ComplexMain.circom",
+      complexMainConfig.circuitArtifactsPath,
     );
   });
 
@@ -52,6 +62,25 @@ describe("Circuit Proof Generation", function () {
 
     const proof = await circuit.generateProof({ in1: 2, in2: 3 });
     expect(await circuit.verifyProof(proof)).to.be.true;
+
+    const calldata = await circuit.generateCalldata(proof);
+    expect(calldata[3].length).to.equal(2);
+  });
+
+  it("should generate and verify proof for ComplexMain.circom", async () => {
+    const object = await circuitTypesGenerator.getCircuitObject("ComplexMain");
+
+    const circuit = new object(complexMainConfig);
+
+    const proof = await circuit.generateProof({
+      in1: 2n,
+      in2: 3n,
+    });
+
+    expect(await circuit.verifyProof(proof)).to.be.true;
+
+    const calldata = await circuit.generateCalldata(proof);
+    expect(calldata[3].length).to.equal(2);
   });
 
   it("should generate and verify proof for Matrix.circom", async () => {
@@ -74,6 +103,9 @@ describe("Circuit Proof Generation", function () {
     });
 
     expect(await circuit.verifyProof(proof)).to.be.true;
+
+    const calldata = await circuit.generateCalldata(proof);
+    expect(calldata[3].length).to.equal(36);
   });
 
   it("should correctly import all of the zktype objects", async () => {
