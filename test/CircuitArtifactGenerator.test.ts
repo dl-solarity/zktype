@@ -66,7 +66,7 @@ describe("Circuit Artifact Generation", function () {
   it("should return an error if the name in the initialization block is missing", async function () {
     const result = await artifactGenerator.getCircuitArtifact("test/mocks/InvalidInitializationBlockName.json");
 
-    expect(result.error).to.be.equal(
+    expect(result.error!.message).to.be.equal(
       "The initializations field of initialization block is missing or incomplete in the circuit AST: test/fixture/InvalidInitializationBlockName.circom",
     );
   });
@@ -86,14 +86,12 @@ describe("Circuit Artifact Generation", function () {
   it("should return an error if the template block is missing", async function () {
     const result = await artifactGenerator.getCircuitArtifact("test/mocks/InvalidTemplateBlock.json");
 
-    expect(result.error).to.be.equal("The template for the circuit Multiplier2 could not be found.");
+    expect(result.error!.message).to.be.equal("The template for the circuit could not be found.");
   });
 
   it("should return an error if the xtype of the initialization block is missing", async function () {
     const result = await artifactGenerator.getCircuitArtifact("test/mocks/InvalidXTypeField.json");
 
-    expect(result.error).to.be.equal(
-      "The initialization block xtype is missing in the circuit AST: test/fixture/InvalidXTypeField.circom",
-    );
+    expect(result.error!.message).to.be.equal("The initialization block xtype is missing in the circuit AST");
   });
 });

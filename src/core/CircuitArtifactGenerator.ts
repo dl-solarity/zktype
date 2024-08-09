@@ -16,6 +16,9 @@ import {
   ArtifactGeneratorConfig,
 } from "../types";
 
+import { ASTParserError } from "../errors";
+import { ErrorObj } from "../errors/common";
+
 /**
  * `CircuitArtifactGenerator` is responsible for generating circuit artifacts based on the AST files.
  *
@@ -51,10 +54,10 @@ export default class CircuitArtifactGenerator {
   /**
    * Generates circuit artifacts based on the ASTs.
    */
-  public async generateCircuitArtifacts(): Promise<string[]> {
+  public async generateCircuitArtifacts(): Promise<ErrorObj[]> {
     const astFilePaths = this._circuitArtifactGeneratorConfig.circuitsASTPaths;
 
-    const errors: string[] = [];
+    const errors: ErrorObj[] = [];
 
     for (const astFilePath of astFilePaths) {
       const circuitArtifact = await this.getCircuitArtifact(astFilePath);
@@ -98,10 +101,10 @@ export default class CircuitArtifactGenerator {
         data: await this._extractArtifact(pathToTheAST),
         error: null,
       };
-    } catch (error: any) {
+    } catch (error: any | ASTParserError) {
       return {
         data: this._getDefaultArtifact(pathToTheAST, CircuitArtifactGenerator.DEFAULT_CIRCUIT_FORMAT),
-        error: error!.message,
+        error: error,
       };
     }
   }
@@ -109,11 +112,12 @@ export default class CircuitArtifactGenerator {
   /**
    * Returns the template arguments for the circuit.
    *
+   * @param circuitArtifact - The circuit artifact.
    * @param {string[]} args - The arguments of the template.
    * @param {any[]} names - The names of the arguments.
    * @returns {Record<string, bigint>} The template arguments for the circuit.
    */
-  private getTemplateArgs(args: string[], names: any[]): Record<string, bigint> {
+  private getTemplateArgs(circuitArtifact: CircuitArtifact, args: string[], names: any[]): Record<string, bigint> {
     if (args.length === 0) {
       return {};
     }
@@ -123,7 +127,7 @@ export default class CircuitArtifactGenerator {
     for (let i = 0; i < args.length; i++) {
       const argObj = (args[i] as any)["Number"];
 
-      result[names[i]] = BigInt(this.resolveNumber(argObj));
+      result[names[i]] = BigInt(this.resolveNumber(circuitArtifact, argObj));
     }
 
     return result;
@@ -132,9 +136,13 @@ export default class CircuitArtifactGenerator {
   /**
    * Resolves the variable from
    */
-  private resolveVariable(variableObj: any) {
+  private resolveVariable(circuitArtifact: CircuitArtifact, variableObj: any) {
     if (!variableObj || !variableObj.name) {
-      throw new Error(`The argument ${variableObj} is not a variable`);
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The argument is not a variable`,
+        variableObj,
+      );
     }
 
     return variableObj.name;
@@ -143,19 +151,27 @@ export default class CircuitArtifactGenerator {
   /**
    * Resolves the number from the AST.
    */
-  private resolveNumber(numberObj: any) {
+  private resolveNumber(circuitArtifact: CircuitArtifact, numberObj: any) {
     if (!numberObj || !numberObj.length || numberObj.length < 2) {
-      throw new Error(`The argument ${numberObj} is not a number`);
+      throw new ASTParserError(this._getCircuitFullName(circuitArtifact), `The argument is not a number`, numberObj);
     }
 
     if (!numberObj[1] || !numberObj[1].length || numberObj[1].length < 2) {
-      throw new Error(`The argument ${numberObj} is of unexpected format`);
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The argument is of unexpected format`,
+        numberObj,
+      );
     }
 
     const actualArg = numberObj[1][1];
 
     if (!actualArg || !actualArg.length || numberObj[1].length < 1) {
-      throw new Error(`The argument ${numberObj} is of unexpected format`);
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The argument is of unexpected format`,
+        actualArg,
+      );
     }
 
     return actualArg[0];
@@ -164,7 +180,7 @@ export default class CircuitArtifactGenerator {
   /**
    * Resolves the dimensions of the signal.
    */
-  private resolveDimension(dimensions: number[]): number[] {
+  private resolveDimension(circuitArtifact: CircuitArtifact, dimensions: number[]): number[] {
     const result: number[] = [];
 
     for (const dimension of dimensions) {
@@ -181,16 +197,20 @@ export default class CircuitArtifactGenerator {
         (numberObj !== undefined && variableObj !== undefined) ||
         (numberObj === undefined && variableObj === undefined)
       ) {
-        throw new Error(`The dimension ${dimension} is of unexpected format`);
+        throw new ASTParserError(
+          this._getCircuitFullName(circuitArtifact),
+          `The dimension is of unexpected format`,
+          dimension,
+        );
       }
 
       if (numberObj) {
-        result.push(this.resolveNumber(numberObj));
+        result.push(this.resolveNumber(circuitArtifact, numberObj));
 
         continue;
       }
 
-      result.push(this.resolveVariable(variableObj));
+      result.push(this.resolveVariable(circuitArtifact, variableObj));
     }
 
     return result;
@@ -265,11 +285,11 @@ export default class CircuitArtifactGenerator {
   /**
    * Finds the template for the circuit based on the circuit name.
    *
+   * @param {CircuitArtifact} circuitArtifact - The circuit artifact.
    * @param {CircomCompilerOutput[]} compilerOutputs - The compiler outputs of the circuit.
-   * @param {string} circuitName - The name of the circuit.
    * @returns {Template} The template for the circuit.
    */
-  private _findTemplateForCircuit(compilerOutputs: CircomCompilerOutput[], circuitName: string): Template {
+  private _findTemplateForCircuit(circuitArtifact: CircuitArtifact, compilerOutputs: CircomCompilerOutput[]): Template {
     for (const compilerOutput of compilerOutputs) {
       if (!compilerOutput.definitions || compilerOutput.definitions.length < 1) {
         continue;
@@ -280,13 +300,17 @@ export default class CircuitArtifactGenerator {
           continue;
         }
 
-        if (definition.Template.name === circuitName) {
+        if (definition.Template.name === circuitArtifact.circuitName) {
           return definition.Template;
         }
       }
     }
 
-    throw new Error(`The template for the circuit ${circuitName} could not be found.`);
+    throw new ASTParserError(
+      this._getCircuitFullName(circuitArtifact),
+      `The template for the circuit could not be found.`,
+      undefined,
+    );
   }
 
   /**
@@ -304,26 +328,35 @@ export default class CircuitArtifactGenerator {
 
     const circuitArtifact: CircuitArtifact = this._getDefaultArtifact(pathToTheAST);
 
-    const template = this._findTemplateForCircuit(ast.circomCompilerOutput, circuitArtifact.circuitName);
-    const templateArgs = this.getTemplateArgs(ast.circomCompilerOutput[0].main_component![1].Call.args, template.args);
+    const template = this._findTemplateForCircuit(circuitArtifact, ast.circomCompilerOutput);
+    const templateArgs = this.getTemplateArgs(
+      circuitArtifact,
+      ast.circomCompilerOutput[0].main_component![1].Call.args,
+      template.args,
+    );
 
     for (const statement of template.body.Block.stmts) {
       if (
         !statement.InitializationBlock ||
-        !this._validateInitializationBlock(ast.sourcePath, statement.InitializationBlock) ||
+        !this._validateInitializationBlock(circuitArtifact, ast.sourcePath, statement.InitializationBlock) ||
         statement.InitializationBlock.xtype.Signal[0] === SignalTypeNames.Intermediate
       ) {
         continue;
       }
 
-      const dimensions = this.resolveDimension(statement.InitializationBlock.initializations[0].Declaration.dimensions);
+      const dimensions = this.resolveDimension(
+        circuitArtifact,
+        statement.InitializationBlock.initializations[0].Declaration.dimensions,
+      );
       const resolvedDimensions = dimensions.map((dimension: any) => {
         if (typeof dimension === "string") {
           const templateArg = templateArgs[dimension];
 
           if (!templateArg) {
-            throw new Error(
-              `The template argument ${dimension} is missing in the circuit ${circuitArtifact.circuitName}`,
+            throw new ASTParserError(
+              this._getCircuitFullName(circuitArtifact),
+              `The template argument is missing in the circuit ${circuitArtifact.circuitName}`,
+              dimension,
             );
           }
 
@@ -382,7 +415,7 @@ export default class CircuitArtifactGenerator {
    */
   private _validateCircuitAST(ast: CircuitAST): void {
     if (!ast.circomCompilerOutput) {
-      throw new Error(`The circomCompilerOutput field is missing in the circuit AST`);
+      throw new Error(`The circomCompilerOutput field is missing in the circuit AST: ${ast.sourcePath}`);
     }
 
     if (
@@ -406,15 +439,24 @@ export default class CircuitArtifactGenerator {
   /**
    * Validates the initialization block in the circuit AST.
    *
+   * @param {CircuitArtifact} circuitArtifact - The default circuit artifact.
    * @param {string} astSourcePath - The source path of the AST.
    * @param {any} initializationBlock - The initialization block to be validated.
    *
    * @returns {boolean} Returns `true` if the initialization block is valid, `false` otherwise.
    * @throws {Error} If the initialization block is missing required fields.
    */
-  private _validateInitializationBlock(astSourcePath: string, initializationBlock: any): boolean {
+  private _validateInitializationBlock(
+    circuitArtifact: CircuitArtifact,
+    astSourcePath: string,
+    initializationBlock: any,
+  ): boolean {
     if (!initializationBlock.xtype) {
-      throw new Error(`The initialization block xtype is missing in the circuit AST: ${astSourcePath}`);
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
+        `The initialization block xtype is missing in the circuit AST`,
+        initializationBlock,
+      );
     }
 
     if (
@@ -423,8 +465,10 @@ export default class CircuitArtifactGenerator {
       !initializationBlock.initializations[0].Declaration ||
       !initializationBlock.initializations[0].Declaration.name
     ) {
-      throw new Error(
+      throw new ASTParserError(
+        this._getCircuitFullName(circuitArtifact),
         `The initializations field of initialization block is missing or incomplete in the circuit AST: ${astSourcePath}`,
+        initializationBlock,
       );
     }
 
@@ -433,5 +477,15 @@ export default class CircuitArtifactGenerator {
     }
 
     return true;
+  }
+
+  /**
+   * Returns the full name of the circuit.
+   *
+   * @param {CircuitArtifact} artifact - The circuit artifact.
+   * @returns {string} The full name of the circuit.
+   */
+  private _getCircuitFullName(artifact: CircuitArtifact): string {
+    return `${artifact.sourceName}:${artifact.circuitName}`;
   }
 }
