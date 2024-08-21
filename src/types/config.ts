@@ -12,9 +12,9 @@ export interface ArtifactGeneratorConfig {
   basePath: string;
 
   /**
-   * An array of paths to the circuits' AST files.
+   * An array of paths to all circuit artifacts.
    */
-  circuitsASTPaths: string[];
+  circuitsArtifactsPaths: string[];
 
   /**
    * The absolute path to the root directory of the project.

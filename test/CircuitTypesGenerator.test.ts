@@ -3,36 +3,37 @@ import path from "path";
 
 import { expect } from "chai";
 
-import { generateAST } from "./helpers/generator";
-
 import { findProjectRoot } from "../src/utils";
 
 import { CircuitTypesGenerator } from "../src";
 
 describe("Circuit Types Generation", function () {
-  const expectedTypes = ["core/CredentialAtomicQueryMTPOnChainVoting.ts", "core/Multiplier2.ts"];
-
-  const astDir = "test/cache/circuits-ast";
+  const expectedTypes = [
+    "core/lib/BasicInLib.circom/Multiplier2.ts",
+    "core/auth/EnhancedMultiplier.ts",
+    "core/auth/Matrix.ts",
+    "core/auth/Multiplier2.ts",
+    "core/Basic.circom/Multiplier2.ts",
+    "core/lib/BasicInLib.circom/Multiplier2.ts",
+    "core/CredentialAtomicQueryMTPOnChainVoting.ts",
+  ];
 
   const circuitTypesGenerator = new CircuitTypesGenerator({
-    basePath: "test/fixture",
+    basePath: "circuits/fixture",
     projectRoot: findProjectRoot(process.cwd()),
-    circuitsASTPaths: [
-      "test/cache/circuits-ast/Basic.json",
-      "test/cache/circuits-ast/credentialAtomicQueryMTPV2OnChainVoting.json",
-      "test/cache/circuits-ast/lib/BasicInLib.json",
-      "test/cache/circuits-ast/auth/EMultiplier.json",
-      "test/cache/circuits-ast/auth/BasicInAuth.json",
+    circuitsArtifactsPaths: [
+      "test/fixture-cache/auth/EnhancedMultiplier_artifacts.json",
+      "test/fixture-cache/auth/Matrix_artifacts.json",
+      "test/fixture-cache/auth/Multiplier2_artifacts.json",
+      "test/fixture-cache/lib/Multiplier2_artifacts.json",
+      "test/fixture-cache/CredentialAtomicQueryMTPOnChainVoting_artifacts.json",
+      "test/fixture-cache/Multiplier2_artifacts.json",
     ],
   });
 
   function getPathToGeneratedType(generatedTypePath: string) {
     return path.join(circuitTypesGenerator.getOutputTypesDir(), generatedTypePath);
   }
-
-  beforeEach(async () => {
-    await generateAST("test/fixture", astDir, true, [], []);
-  });
 
   afterEach(async () => {
     if (fs.existsSync(circuitTypesGenerator.getOutputTypesDir())) {

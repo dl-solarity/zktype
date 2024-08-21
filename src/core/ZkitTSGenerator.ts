@@ -11,10 +11,10 @@ import {
   CircuitArtifact,
   CircuitClass,
   Inputs,
-  Signal,
   TypeExtensionTemplateParams,
   DefaultWrapperTemplateParams,
   WrapperTemplateParams,
+  SignalInfo,
 } from "../types";
 
 import { normalizeName } from "../utils";
@@ -75,18 +75,18 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     let outputCounter: number = 0;
     const publicInputs: Inputs[] = [];
 
-    const privateInputs: Inputs[] = circuitArtifact.signals
+    const privateInputs: Inputs[] = circuitArtifact.baseCircuitInfo.signals
       .filter((signal) => signal.type != SignalTypeNames.Output)
       .map((signal) => {
         return {
           name: signal.name,
-          dimensions: "[]".repeat(signal.dimensions.length),
-          dimensionsArray: new Array(signal.dimensions).join(", "),
+          dimensions: "[]".repeat(signal.dimension.length),
+          dimensionsArray: new Array(signal.dimension).join(", "),
         };
       });
 
     let calldataPubSignalsCount = 0;
-    for (const signal of circuitArtifact.signals) {
+    for (const signal of circuitArtifact.baseCircuitInfo.signals) {
       if (signal.visibility === SignalVisibilityNames.Private) {
         continue;
       }
@@ -94,8 +94,8 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       if (signal.type === SignalTypeNames.Output) {
         publicInputs.splice(outputCounter, 0, {
           name: signal.name,
-          dimensions: "[]".repeat(signal.dimensions.length),
-          dimensionsArray: new Array(signal.dimensions).join(", "),
+          dimensions: "[]".repeat(signal.dimension.length),
+          dimensionsArray: new Array(signal.dimension).join(", "),
         });
 
         calldataPubSignalsCount += this._getPublicSignalsCount(signal);
@@ -105,8 +105,8 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
 
       publicInputs.push({
         name: signal.name,
-        dimensions: "[]".repeat(signal.dimensions.length),
-        dimensionsArray: new Array(signal.dimensions).join(", "),
+        dimensions: "[]".repeat(signal.dimension.length),
+        dimensionsArray: new Array(signal.dimension).join(", "),
       });
 
       calldataPubSignalsCount += this._getPublicSignalsCount(signal);
@@ -143,11 +143,11 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     return this._getNodeContent(ts.factory.createTupleTypeNode(calldataType));
   }
 
-  private _getPublicSignalsCount(signal: Signal): number {
-    if (signal.dimensions.length === 0) {
+  private _getPublicSignalsCount(signal: SignalInfo): number {
+    if (signal.dimension.length === 0) {
       return 1;
     }
 
-    return signal.dimensions.reduce((acc, dim) => acc * dim, 1);
+    return signal.dimension.reduce((acc: number, dim: string) => acc * Number(dim), 1);
   }
 }
