@@ -1,11 +1,9 @@
-export interface ZKTypeConfig extends ArtifactGeneratorConfig {
+export interface ZKTypeConfig {
   /**
    * The path to the directory where the generated types will be stored.
    */
   outputTypesDir?: string;
-}
 
-export interface ArtifactGeneratorConfig {
   /**
    * The base path to the root directory of the project where circuits are stored.
    */
@@ -20,9 +18,4 @@ export interface ArtifactGeneratorConfig {
    * The absolute path to the root directory of the project.
    */
   projectRoot: string;
-
-  /**
-   * The path to the directory where the generated artifacts will be stored.
-   */
-  outputArtifactsDir?: string;
 }
