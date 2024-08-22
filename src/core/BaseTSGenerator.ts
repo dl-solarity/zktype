@@ -2,8 +2,6 @@ import fs from "fs";
 import path from "path";
 import ts from "typescript";
 
-import CircuitArtifactGenerator from "./CircuitArtifactGenerator";
-
 import { CircuitArtifact, ZKTypeConfig } from "../types";
 
 /**
@@ -24,12 +22,8 @@ export default class BaseTSGenerator {
   protected readonly _printer: ts.Printer;
   protected readonly _resultFile: ts.SourceFile;
 
-  protected readonly _artifactsGenerator: CircuitArtifactGenerator;
-
   constructor(config: ZKTypeConfig) {
     this._zktypeConfig = config;
-
-    this._artifactsGenerator = new CircuitArtifactGenerator(config);
 
     this._projectRoot = config.projectRoot;
 
@@ -44,13 +38,6 @@ export default class BaseTSGenerator {
     const relativePath: string = this._zktypeConfig.outputTypesDir ?? "generated-types/circuits";
 
     return path.join(this._projectRoot, relativePath);
-  }
-
-  /**
-   * Returns the path to the output directory for the generated artifacts.
-   */
-  public getOutputArtifactsDir(): string {
-    return this._artifactsGenerator.getOutputArtifactsDir();
   }
 
   /**
@@ -87,7 +74,7 @@ export default class BaseTSGenerator {
    * @returns {string} The extracted type name.
    */
   protected _getTypeName(circuitArtifact: CircuitArtifact, prefix: string = ""): string {
-    return `${prefix}${circuitArtifact.circuitName.replace(path.extname(circuitArtifact.circuitName), "")}`;
+    return `${prefix}${circuitArtifact.circuitTemplateName.replace(path.extname(circuitArtifact.circuitTemplateName), "")}`;
   }
 
   /**
@@ -97,7 +84,7 @@ export default class BaseTSGenerator {
    * @returns {string} The extracted circuit name.
    */
   protected _getCircuitName(circuitArtifact: CircuitArtifact): string {
-    return `${circuitArtifact.circuitName.replace(path.extname(circuitArtifact.circuitName), "")}`;
+    return `${circuitArtifact.circuitTemplateName.replace(path.extname(circuitArtifact.circuitTemplateName), "")}`;
   }
 
   /**
@@ -109,7 +96,7 @@ export default class BaseTSGenerator {
    * @returns {string} The full circuit name.
    */
   protected _getFullCircuitName(circuitArtifact: CircuitArtifact): string {
-    return `${circuitArtifact.sourceName}:${this._getCircuitName(circuitArtifact)}`;
+    return `${circuitArtifact.circuitSourceName}:${this._getCircuitName(circuitArtifact)}`;
   }
 
   /**

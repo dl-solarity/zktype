@@ -1,0 +1,51 @@
+{
+  "_format": "hh-zkit-artifacts-1",
+  "circuitTemplateName": "Multiplier2",
+  "circuitFileName": "BasicInLib",
+  "circuitSourceName": "circuits/fixture/lib/BasicInLib.circom",
+  "baseCircuitInfo": {
+    "constraintsNumber": 1,
+    "signals": [
+      {
+        "name": "in1",
+        "dimension": [],
+        "type": "Input",
+        "visibility": "Public"
+      },
+      {
+        "name": "in2",
+        "dimension": [],
+        "type": "Input",
+        "visibility": "Public"
+      },
+      {
+        "name": "out",
+        "dimension": [],
+        "type": "Output",
+        "visibility": "Public"
+      }
+    ]
+  },
+  "compilerOutputFiles": {
+    "ast": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/lib/BasicInLib.circom/Multiplier2_ast.json",
+      "fileHash": "1abf0dd784d35b56a11ed0b11930626f"
+    },
+    "wasm": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/lib/BasicInLib.circom/Multiplier2_js/Multiplier2.wasm",
+      "fileHash": "f86a885a3eca331d9261be16d382dabb"
+    },
+    "c": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/lib/BasicInLib.circom/Multiplier2_cpp/main.cpp",
+      "fileHash": "90ab764db6ce0dc1ed4a47304d86596b"
+    },
+    "r1cs": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/lib/BasicInLib.circom/Multiplier2.r1cs",
+      "fileHash": "1d51e8b44c494d886756eb42bf17cb6d"
+    },
+    "sym": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/lib/BasicInLib.circom/Multiplier2.sym",
+      "fileHash": "7ab02b651b7961bf54c051d1444b9b2e"
+    }
+  }
+}

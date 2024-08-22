@@ -5,11 +5,15 @@ export enum SignalTypeNames {
 }
 
 export enum SignalVisibilityNames {
-  Public = "public",
-  Private = "private",
+  Public = "Public",
+  Private = "Private",
 }
 
 export enum InternalType {
   BigInt = "<number-like>",
   BigIntArray = "<array-like>",
+}
+
+export enum Formats {
+  V1HH_ZKIT_TYPE = "hh-zkit-artifacts-1",
 }

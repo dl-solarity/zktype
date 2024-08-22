@@ -45,3 +45,5 @@ typings/
 
 # Optional npm cache directory
 .npm
+
+!test/fixture-cache/artifacts

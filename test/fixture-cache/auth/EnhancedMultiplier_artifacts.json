@@ -1,0 +1,55 @@
+{
+  "_format": "hh-zkit-artifacts-1",
+  "circuitTemplateName": "EnhancedMultiplier",
+  "circuitFileName": "EMultiplier",
+  "circuitSourceName": "circuits/fixture/auth/EMultiplier.circom",
+  "baseCircuitInfo": {
+    "constraintsNumber": 1,
+    "signals": [
+      {
+        "name": "in1",
+        "dimension": [
+          "1",
+          "2",
+          "3"
+        ],
+        "type": "Input",
+        "visibility": "Public"
+      },
+      {
+        "name": "in2",
+        "dimension": [],
+        "type": "Input",
+        "visibility": "Public"
+      },
+      {
+        "name": "out",
+        "dimension": [],
+        "type": "Output",
+        "visibility": "Public"
+      }
+    ]
+  },
+  "compilerOutputFiles": {
+    "ast": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/EMultiplier.circom/EnhancedMultiplier_ast.json",
+      "fileHash": "a65fcc054f98d80e71761b955ad25e33"
+    },
+    "wasm": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/EMultiplier.circom/EnhancedMultiplier_js/EnhancedMultiplier.wasm",
+      "fileHash": "bafa44ffe05fcf7355ee28a116b0f80c"
+    },
+    "c": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/EMultiplier.circom/EnhancedMultiplier_cpp/main.cpp",
+      "fileHash": "90ab764db6ce0dc1ed4a47304d86596b"
+    },
+    "r1cs": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/EMultiplier.circom/EnhancedMultiplier.r1cs",
+      "fileHash": "56ea789f075479537ff60dbd90bbcb3b"
+    },
+    "sym": {
+      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/EMultiplier.circom/EnhancedMultiplier.sym",
+      "fileHash": "8af8a060446d927124acd02cb17f1406"
+    }
+  }
+}

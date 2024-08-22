@@ -1,6 +1,6 @@
 {
   "name": "@solarity/zktype",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "Unleash TypeScript bindings for Circom circuits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,9 +15,8 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "prepare-test": "ts-node ./test/helpers/generateTypes.ts",
-    "build": "npm run prepare-test && tsc",
-    "test": "npm run prepare-test && mocha --recursive 'test/**/*.ts' --exit",
+    "build": "tsc",
+    "test": "mocha --recursive 'test/**/*.ts' --exit",
     "coverage": "prepare-test && nyc mocha --recursive 'test/**/*.ts' --exit",
     "lint-fix": "prettier --write '**/*.ts'",
     "publish-to-npm": "npm run build && npm run lint-fix && rm -rf dist/core/templates && cp -rf src/core/templates dist/core/templates && npm publish ./ --access public"
@@ -53,7 +52,6 @@
     "@solarity/zkit": "^0.2.4"
   },
   "devDependencies": {
-    "@distributedlab/circom2": "0.2.18-rc.2",
     "@types/chai": "^4.3.12",
     "@types/chai-as-promised": "^7.1.8",
     "@types/ejs": "^3.1.5",

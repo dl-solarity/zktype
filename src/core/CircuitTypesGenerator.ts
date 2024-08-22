@@ -3,12 +3,11 @@ import path from "path";
 import ts from "typescript";
 
 import ZkitTSGenerator from "./ZkitTSGenerator";
-import CircuitArtifactGenerator from "./CircuitArtifactGenerator";
 
 import { normalizeName } from "../utils";
 
+import { Formats } from "../constants";
 import { CircuitArtifact, ArtifactWithPath } from "../types";
-import { ErrorObj } from "../errors/common";
 
 /**
  * `CircuitTypesGenerator` is need for generating TypeScript bindings based on circuit artifacts.
@@ -56,9 +55,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
    *
    * @returns {Promise<void>} A promise that resolves when all types have been generated.
    */
-  public async generateTypes(): Promise<ErrorObj[]> {
-    const errorsWhenGenArtifacts = await this._artifactsGenerator.generateCircuitArtifacts();
-
+  public async generateTypes(): Promise<void> {
     const circuitArtifacts = this._fetchCircuitArtifacts();
 
     fs.mkdirSync(this.getOutputTypesDir(), { recursive: true });
@@ -67,21 +64,21 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     const typePathsToResolve: ArtifactWithPath[] = [];
 
     for (let i = 0; i < circuitArtifacts.length; i++) {
-      const circuitName = circuitArtifacts[i].circuitName;
+      const circuitName = circuitArtifacts[i].circuitTemplateName;
 
       const isNameAlreadyExist = isNameExist.has(circuitName);
       isNameExist.set(circuitName, true);
 
       let circuitTypePath = this._getCircuitTypeShortPath(
-        circuitArtifacts[i].basePath,
-        circuitArtifacts[i].sourceName,
+        this._zktypeConfig.basePath,
+        circuitArtifacts[i].circuitSourceName,
         circuitName,
       );
 
       if (isNameAlreadyExist) {
         circuitTypePath = this._getCircuitTypeLongPath(
-          circuitArtifacts[i].basePath,
-          circuitArtifacts[i].sourceName,
+          this._zktypeConfig.basePath,
+          circuitArtifacts[i].circuitSourceName,
           circuitName,
         );
       }
@@ -107,8 +104,6 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     const utilsDirPath = this.getOutputTypesDir();
     fs.mkdirSync(utilsDirPath, { recursive: true });
     fs.copyFileSync(path.join(__dirname, "templates", "utils.ts"), path.join(utilsDirPath, "utils.ts"));
-
-    return errorsWhenGenArtifacts;
   }
 
   /**
@@ -156,19 +151,19 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
         }
       }
 
-      if (!isCircuitNameExist.has(typePath.circuitArtifact.circuitName)) {
+      if (!isCircuitNameExist.has(typePath.circuitArtifact.circuitTemplateName)) {
         indexFilesMap.set(pathToMainIndexFile, [
           ...(indexFilesMap.get(pathToMainIndexFile) === undefined ? [] : indexFilesMap.get(pathToMainIndexFile)!),
           this._getExportDeclarationForFile(path.relative(this._projectRoot, levels.join(path.sep))),
         ]);
       }
 
-      isCircuitNameExist.set(typePath.circuitArtifact.circuitName, true);
+      isCircuitNameExist.set(typePath.circuitArtifact.circuitTemplateName, true);
 
-      topLevelCircuits[typePath.circuitArtifact.circuitName] =
-        topLevelCircuits[typePath.circuitArtifact.circuitName] === undefined
+      topLevelCircuits[typePath.circuitArtifact.circuitTemplateName] =
+        topLevelCircuits[typePath.circuitArtifact.circuitTemplateName] === undefined
           ? [typePath]
-          : [...topLevelCircuits[typePath.circuitArtifact.circuitName], typePath];
+          : [...topLevelCircuits[typePath.circuitArtifact.circuitTemplateName], typePath];
     }
 
     for (const [absolutePath, content] of indexFilesMap) {
@@ -260,37 +255,31 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     pathToGeneratedFile: string,
   ): Promise<string> {
     switch (circuitArtifact._format) {
-      case CircuitArtifactGenerator.CURRENT_FORMAT:
+      case Formats.V1HH_ZKIT_TYPE:
         return await this._genCircuitWrapperClassContent(circuitArtifact, pathToGeneratedFile);
-      case CircuitArtifactGenerator.DEFAULT_CIRCUIT_FORMAT:
-        return await this._genDefaultCircuitWrapperClassContent(circuitArtifact);
       default:
         throw new Error(`Unsupported format: ${circuitArtifact._format}`);
     }
   }
 
   /**
-   * Fetches the circuit artifacts from the `ARTIFACTS_DIR` directory.
+   * Fetches the circuit artifacts from the specified paths.
    *
    * Directories and not JSON files are ignored.
    *
    * @returns {CircuitArtifact[]} The fetched circuit artifacts.
    */
   private _fetchCircuitArtifacts(): CircuitArtifact[] {
-    const files = fs.readdirSync(this._artifactsGenerator.getOutputArtifactsDir(), { recursive: true });
-
     const artifacts: CircuitArtifact[] = [];
 
-    for (const file of files) {
+    for (const file of this._zktypeConfig.circuitsArtifactsPaths) {
       const filePath = file.toString();
 
       if (!path.extname(filePath) || !path.extname(filePath).includes(".json")) {
         continue;
       }
 
-      artifacts.push(
-        JSON.parse(fs.readFileSync(path.join(this._artifactsGenerator.getOutputArtifactsDir(), filePath), "utf-8")),
-      );
+      artifacts.push(JSON.parse(fs.readFileSync(path.join(this._projectRoot, filePath), "utf-8")));
     }
 
     return artifacts;
