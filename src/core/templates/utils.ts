@@ -7,8 +7,8 @@ export function normalizePublicSignals(
 ): any {
   let index = 0;
   return signalNames.reduce((acc: any, signalName) => {
-    const dimensions = getSignalDimensions(signalName);
-    const size = dimensions.reduce((a, b) => a * b, 1);
+    const dimensions: number[] = getSignalDimensions(signalName);
+    const size: number = dimensions.reduce((a, b) => a * b, 1);
 
     acc[signalName] = reshape(publicSignals.slice(index, index + size), dimensions);
     index += size;
@@ -29,9 +29,9 @@ function reshape(array: number[], dimensions: number[]): any {
   }
 
   const [first, ...rest] = dimensions;
-  const size = rest.reduce((a, b) => a * b, 1);
+  const size: number = rest.reduce((a, b) => a * b, 1);
 
-  const result = [];
+  const result: any[] = [];
   for (let i = 0; i < first; i++) {
     result.push(reshape(array.slice(i * size, (i + 1) * size), rest));
   }
