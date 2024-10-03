@@ -19,6 +19,7 @@ import {
 
 import { normalizeName } from "../utils";
 import { SignalTypeNames, SignalVisibilityNames } from "../constants";
+import { Groth16CalldataPointsType, PlonkCalldataPointsType } from "../constants/protocol";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genHardhatZkitTypeExtension(circuits: {
@@ -70,6 +71,8 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
   ): Promise<string> {
+    this._validateCircuitArtifact(circuitArtifact);
+
     const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
     let outputCounter: number = 0;
@@ -114,11 +117,15 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
 
     const pathToUtils = path.join(this.getOutputTypesDir(), "utils");
     const templateParams: WrapperTemplateParams = {
+      protocolTypeName: circuitArtifact.baseCircuitInfo.protocol,
+      protocolImplementerName: this._getProtocolImplementerName(circuitArtifact),
+      proofTypeInternalName: this._getProofTypeInternalName(circuitArtifact),
       circuitClassName: this._getCircuitName(circuitArtifact),
       publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),
       calldataPubSignalsType: this._getCalldataPubSignalsType(calldataPubSignalsCount),
       publicInputs,
       privateInputs,
+      calldataPointsType: this._getCalldataPointsType(circuitArtifact),
       proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
       privateInputsTypeName: this._getTypeName(circuitArtifact, "Private"),
       pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
@@ -149,5 +156,44 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
 
     return signal.dimension.reduce((acc: number, dim: string) => acc * Number(dim), 1);
+  }
+
+  private _getProtocolImplementerName(circuitArtifact: CircuitArtifact): any {
+    switch (circuitArtifact.baseCircuitInfo.protocol) {
+      case "groth16":
+        return "Groth16Implementer";
+      case "plonk":
+        return "PlonkImplementer";
+      default:
+        throw new Error(`Unknown protocol: ${circuitArtifact.baseCircuitInfo.protocol}`);
+    }
+  }
+
+  private _getProofTypeInternalName(circuitArtifact: CircuitArtifact): any {
+    switch (circuitArtifact.baseCircuitInfo.protocol) {
+      case "groth16":
+        return "Groth16Proof";
+      case "plonk":
+        return "PlonkProof";
+      default:
+        throw new Error(`Unknown protocol: ${circuitArtifact.baseCircuitInfo.protocol}`);
+    }
+  }
+
+  private _getCalldataPointsType(circuitArtifact: CircuitArtifact): any {
+    switch (circuitArtifact.baseCircuitInfo.protocol) {
+      case "groth16":
+        return Groth16CalldataPointsType;
+      case "plonk":
+        return PlonkCalldataPointsType;
+      default:
+        throw new Error(`Unknown protocol: ${circuitArtifact.baseCircuitInfo.protocol}`);
+    }
+  }
+
+  private _validateCircuitArtifact(circuitArtifact: CircuitArtifact): void {
+    if (!circuitArtifact.baseCircuitInfo.protocol) {
+      throw new Error(`ZKType: Protocol is missing in the circuit artifact: ${circuitArtifact.circuitTemplateName}`);
+    }
   }
 }

@@ -2,9 +2,12 @@ import {
   CircuitZKit,
   CircuitZKitConfig,
   Groth16Proof,
+  PlonkProof,
   NumberLike,
   NumericString,
   PublicSignals,
+  Groth16Implementer,
+  PlonkImplementer,
 } from "@solarity/zkit";
 
 import { normalizePublicSignals, denormalizePublicSignals } from "<%= pathToUtils %>";
@@ -22,20 +25,18 @@ export type <%= publicInputsTypeName %> = {
 }
 
 export type <%= proofTypeName %> = {
-  proof: Groth16Proof;
+  proof: <%= proofTypeInternalName %>;
   publicSignals: <%= publicInputsTypeName %>;
 }
 
 export type Calldata = [
-    [NumericString, NumericString],
-    [[NumericString, NumericString], [NumericString, NumericString]],
-    [NumericString, NumericString],
+    <%= calldataPointsType %>,
     <%= calldataPubSignalsType %>,
 ];
 
-export class <%= circuitClassName %> extends CircuitZKit {
+export class <%= circuitClassName %> extends CircuitZKit<"<%= protocolTypeName %>"> {
   constructor(config: CircuitZKitConfig) {
-    super(config);
+    super(config, new <%= protocolImplementerName %>());
   }
 
   public async generateProof(inputs: <%= privateInputsTypeName %>): Promise<<%= proofTypeName %>> {

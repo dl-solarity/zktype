@@ -5,6 +5,7 @@
   "circuitSourceName": "circuits/fixture/auth/Matrix.circom",
   "baseCircuitInfo": {
     "constraintsNumber": 8,
+    "protocol": "groth16",
     "signals": [
       {
         "name": "a",
