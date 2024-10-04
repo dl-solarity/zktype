@@ -30,7 +30,7 @@ export type CircuitArtifact = {
  * @param {SignalInfo[]} signals - The array of `input` and `output` signals used in the circuit.
  */
 export type BaseCircuitInfo = {
-  protocol: "groth16" | "plonk";
+  protocol: ["groth16" | "plonk"];
   constraintsNumber: number;
   signals: SignalInfo[];
 };

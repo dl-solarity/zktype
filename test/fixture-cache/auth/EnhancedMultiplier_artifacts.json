@@ -5,7 +5,7 @@
   "circuitSourceName": "circuits/fixture/auth/EMultiplier.circom",
   "baseCircuitInfo": {
     "constraintsNumber": 1,
-    "protocol": "groth16",
+    "protocol": ["groth16"],
     "signals": [
       {
         "name": "in1",

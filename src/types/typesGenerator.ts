@@ -39,3 +39,9 @@ export interface CircuitClass {
 export interface TypeExtensionTemplateParams {
   circuitClasses: CircuitClass[];
 }
+
+export interface GeneratedCircuitWrapperResult {
+  content: string;
+  className: string;
+  prefix: string;
+}

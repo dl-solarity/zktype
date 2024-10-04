@@ -7,7 +7,7 @@ import ZkitTSGenerator from "./ZkitTSGenerator";
 import { normalizeName } from "../utils";
 
 import { Formats } from "../constants";
-import { CircuitArtifact, ArtifactWithPath } from "../types";
+import { CircuitArtifact, ArtifactWithPath, GeneratedCircuitWrapperResult } from "../types";
 
 /**
  * `CircuitTypesGenerator` is need for generating TypeScript bindings based on circuit artifacts.
@@ -88,14 +88,26 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
       });
 
       const pathToGeneratedFile = path.join(this.getOutputTypesDir(), circuitTypePath);
-      const preparedNode = await this._returnTSDefinitionByArtifact(circuitArtifacts[i], pathToGeneratedFile);
+      const preparedNodes: GeneratedCircuitWrapperResult[] = await this._returnTSDefinitionByArtifact(
+        circuitArtifacts[i],
+        pathToGeneratedFile,
+      );
 
-      this._saveFileContent(circuitTypePath, preparedNode);
+      for (const preparedNode of preparedNodes) {
+        circuitTypePath = path.join(path.dirname(circuitTypePath), preparedNode.className + ".ts");
 
-      typePathsToResolve.push({
-        circuitArtifact: circuitArtifacts[i],
-        pathToGeneratedFile: path.join(this.getOutputTypesDir(), circuitTypePath),
-      });
+        this._saveFileContent(circuitTypePath, preparedNode.content);
+
+        typePathsToResolve.push({
+          circuitArtifact: {
+            ...circuitArtifacts[i],
+            circuitTemplateName:
+              circuitArtifacts[i].circuitTemplateName +
+              (circuitArtifacts[i].baseCircuitInfo.protocol.length > 1 ? preparedNode.prefix : ""),
+          },
+          pathToGeneratedFile: path.join(this.getOutputTypesDir(), circuitTypePath),
+        });
+      }
     }
 
     await this._resolveTypePaths(typePathsToResolve);
@@ -253,10 +265,10 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   private async _returnTSDefinitionByArtifact(
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
-  ): Promise<string> {
+  ): Promise<GeneratedCircuitWrapperResult[]> {
     switch (circuitArtifact._format) {
       case Formats.V1HH_ZKIT_TYPE:
-        return await this._genCircuitWrapperClassContent(circuitArtifact, pathToGeneratedFile);
+        return await this._genCircuitWrappersClassContent(circuitArtifact, pathToGeneratedFile);
       default:
         throw new Error(`Unsupported format: ${circuitArtifact._format}`);
     }

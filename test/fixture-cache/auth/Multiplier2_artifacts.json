@@ -5,7 +5,7 @@
   "circuitSourceName": "circuits/fixture/auth/BasicInAuth.circom",
   "baseCircuitInfo": {
     "constraintsNumber": 1,
-    "protocol": "groth16",
+    "protocol": ["plonk"],
     "signals": [
       {
         "name": "in1",

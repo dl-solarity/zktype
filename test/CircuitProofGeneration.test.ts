@@ -36,7 +36,7 @@ describe("Circuit Proof Generation", function () {
   });
 
   it("should generate and verify proof for Basic.circom", async () => {
-    const object = await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2");
+    const object = await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2Groth16");
 
     const circuit = new object(basicConfig);
 
@@ -73,16 +73,18 @@ describe("Circuit Proof Generation", function () {
   });
 
   it("should correctly import all of the zktype objects", async () => {
-    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2"))();
-    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/BasicInLib.circom:Multiplier2"))();
-    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/auth/BasicInAuth.circom:Multiplier2"))();
-    new (await circuitTypesGenerator.getCircuitObject("CredentialAtomicQueryMTPOnChainVoting"))();
     new (await circuitTypesGenerator.getCircuitObject("EnhancedMultiplier"))();
     new (await circuitTypesGenerator.getCircuitObject("Matrix"))();
+    new (await circuitTypesGenerator.getCircuitObject("Multiplier2"))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/BasicInLib.circom:Multiplier2Groth16"))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2Groth16"))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/BasicInLib.circom:Multiplier2Plonk"))();
+    new (await circuitTypesGenerator.getCircuitObject("CredentialAtomicQueryMTPOnChainVotingGroth16"))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2Plonk"))();
 
-    await expect(circuitTypesGenerator.getCircuitObject("Multiplier3")).to.be.rejectedWith(
-      "Circuit Multiplier3 type does not exist.",
-    );
+    await expect(
+      circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/Basic.circom:Multiplier2Groth16"),
+    ).to.be.rejectedWith("Circuit Multiplier2Groth16 type does not exist.");
     await expect(circuitTypesGenerator.getCircuitObject("test/fixture/Basic.circom:Multiplier3")).to.be.rejectedWith(
       "Circuit Multiplier3 type does not exist.",
     );

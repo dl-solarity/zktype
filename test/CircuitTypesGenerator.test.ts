@@ -9,13 +9,17 @@ import { CircuitTypesGenerator } from "../src";
 
 describe("Circuit Types Generation", function () {
   const expectedTypes = [
-    "core/lib/BasicInLib.circom/Multiplier2.ts",
+    "core/lib/BasicInLib.circom/Multiplier2Groth16.ts",
+    "core/lib/BasicInLib.circom/Multiplier2Plonk.ts",
     "core/auth/EnhancedMultiplier.ts",
     "core/auth/Matrix.ts",
     "core/auth/Multiplier2.ts",
-    "core/Basic.circom/Multiplier2.ts",
-    "core/lib/BasicInLib.circom/Multiplier2.ts",
-    "core/CredentialAtomicQueryMTPOnChainVoting.ts",
+    "core/Basic.circom/Multiplier2Groth16.ts",
+    "core/Basic.circom/Multiplier2Plonk.ts",
+    "core/lib/BasicInLib.circom/Multiplier2Groth16.ts",
+    "core/lib/BasicInLib.circom/Multiplier2Plonk.ts",
+    "core/CredentialAtomicQueryMTPOnChainVotingPlonk.ts",
+    "core/CredentialAtomicQueryMTPOnChainVotingGroth16.ts",
   ];
 
   const circuitTypesGenerator = new CircuitTypesGenerator({
