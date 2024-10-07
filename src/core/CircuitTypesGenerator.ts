@@ -27,7 +27,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     const module = await import(pathToGeneratedTypes);
 
     if (protocol) {
-      circuitName += this._getPrefix(protocol);
+      circuitName += this._getPrefix(protocol.toLowerCase());
     }
 
     if (!this._isFullyQualifiedCircuitName(circuitName)) {

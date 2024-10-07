@@ -6,7 +6,7 @@ declare module "hardhat/types/runtime" {
             getCircuit(
                 name: "<%= circuitClasses[i].name %>"
                 <% if (circuitClasses[i].protocol) { %>,
-                protocol: "<%= circuitClasses[i].protocol %>"
+                    protocol: "<%= circuitClasses[i].protocol %>"
                 <% } %>
             )   : Promise<Circuits.<%= circuitClasses[i].object %>>;
         <% } -%>

@@ -188,7 +188,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     return {
       content: await prettier.format(ejs.render(template, templateParams), { parser: "typescript" }),
       className: circuitClassName,
-      prefix: this._getPrefix(protocolType),
+      prefix: this._getPrefix(protocolType).toLowerCase(),
     };
   }
 
@@ -240,7 +240,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
   }
 
   protected _getPrefix(protocolType: string): string {
-    switch (protocolType.toLowerCase()) {
+    switch (protocolType) {
       case "groth16":
         return "Groth16";
       case "plonk":
