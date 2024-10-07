@@ -48,13 +48,13 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       if (artifacts.length === 2 && artifacts[0].protocol !== artifacts[1].protocol) {
         circuitClasses.push({
           name: this._getCircuitName(artifacts[0].circuitArtifact),
-          object: this._getCircuitName(artifacts[0].circuitArtifact) + artifacts[0].protocol,
+          object: this._getCircuitName(artifacts[0].circuitArtifact) + this._getPrefix(artifacts[0].protocol!),
           protocol: artifacts[0].protocol,
         });
 
         circuitClasses.push({
           name: this._getCircuitName(artifacts[1].circuitArtifact),
-          object: this._getCircuitName(artifacts[1].circuitArtifact) + artifacts[1].protocol,
+          object: this._getCircuitName(artifacts[1].circuitArtifact) + this._getPrefix(artifacts[1].protocol!),
           protocol: artifacts[1].protocol,
         });
 
