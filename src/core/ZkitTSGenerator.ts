@@ -39,6 +39,23 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         circuitClasses.push({
           name: this._getCircuitName(artifacts[0].circuitArtifact),
           object: this._getCircuitName(artifacts[0].circuitArtifact),
+          protocol: artifacts[0].protocol,
+        });
+
+        continue;
+      }
+
+      if (artifacts.length === 2 && artifacts[0].protocol !== artifacts[1].protocol) {
+        circuitClasses.push({
+          name: this._getCircuitName(artifacts[0].circuitArtifact),
+          object: this._getCircuitName(artifacts[0].circuitArtifact) + artifacts[0].protocol,
+          protocol: artifacts[0].protocol,
+        });
+
+        circuitClasses.push({
+          name: this._getCircuitName(artifacts[1].circuitArtifact),
+          object: this._getCircuitName(artifacts[1].circuitArtifact) + artifacts[1].protocol,
+          protocol: artifacts[1].protocol,
         });
 
         continue;
@@ -48,6 +65,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         circuitClasses.push({
           name: this._getFullCircuitName(artifact.circuitArtifact),
           object: this._getObjectPath(artifact.pathToGeneratedFile),
+          protocol: artifact.protocol,
         });
       }
     }
@@ -221,8 +239,8 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
   }
 
-  private _getPrefix(protocolType: string): string {
-    switch (protocolType) {
+  protected _getPrefix(protocolType: string): string {
+    switch (protocolType.toLowerCase()) {
       case "groth16":
         return "Groth16";
       case "plonk":

@@ -75,12 +75,16 @@ describe("Circuit Proof Generation", function () {
   it("should correctly import all of the zktype objects", async () => {
     new (await circuitTypesGenerator.getCircuitObject("EnhancedMultiplier"))();
     new (await circuitTypesGenerator.getCircuitObject("Matrix"))();
-    new (await circuitTypesGenerator.getCircuitObject("Multiplier2"))();
-    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/BasicInLib.circom:Multiplier2Groth16"))();
-    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2Groth16"))();
-    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/BasicInLib.circom:Multiplier2Plonk"))();
-    new (await circuitTypesGenerator.getCircuitObject("CredentialAtomicQueryMTPOnChainVotingGroth16"))();
-    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2Plonk"))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/auth/BasicInAuth.circom:Multiplier2"))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/BasicInLib.circom:Multiplier2", "Plonk"))();
+    new (await circuitTypesGenerator.getCircuitObject(
+      "circuits/fixture/lib/BasicInLib.circom:Multiplier2",
+      "Groth16",
+    ))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2", "Groth16"))();
+    new (await circuitTypesGenerator.getCircuitObject("circuits/fixture/Basic.circom:Multiplier2", "Plonk"))();
+    new (await circuitTypesGenerator.getCircuitObject("CredentialAtomicQueryMTPOnChainVoting", "Groth16"))();
+    new (await circuitTypesGenerator.getCircuitObject("CredentialAtomicQueryMTPOnChainVoting", "Plonk"))();
 
     await expect(
       circuitTypesGenerator.getCircuitObject("circuits/fixture/lib/Basic.circom:Multiplier2Groth16"),

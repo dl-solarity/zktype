@@ -4,6 +4,7 @@ import { Groth16CalldataPointsType, PlonkCalldataPointsType } from "../constants
 export interface ArtifactWithPath {
   circuitArtifact: CircuitArtifact;
   pathToGeneratedFile: string;
+  protocol?: string;
 }
 
 export interface Inputs {
@@ -34,6 +35,7 @@ export interface WrapperTemplateParams {
 export interface CircuitClass {
   name: string;
   object: string;
+  protocol?: string;
 }
 
 export interface TypeExtensionTemplateParams {

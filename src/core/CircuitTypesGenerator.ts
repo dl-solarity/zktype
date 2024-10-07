@@ -21,10 +21,14 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   /**
    * Returns an object that represents the circuit class based on the circuit name.
    */
-  public async getCircuitObject(circuitName: string): Promise<any> {
+  public async getCircuitObject(circuitName: string, protocol?: string): Promise<any> {
     const pathToGeneratedTypes = this.getOutputTypesDir();
 
     const module = await import(pathToGeneratedTypes);
+
+    if (protocol) {
+      circuitName += this._getPrefix(protocol);
+    }
 
     if (!this._isFullyQualifiedCircuitName(circuitName)) {
       if (!module[circuitName]) {
@@ -99,13 +103,9 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
         this._saveFileContent(circuitTypePath, preparedNode.content);
 
         typePathsToResolve.push({
-          circuitArtifact: {
-            ...circuitArtifacts[i],
-            circuitTemplateName:
-              circuitArtifacts[i].circuitTemplateName +
-              (circuitArtifacts[i].baseCircuitInfo.protocol.length > 1 ? preparedNode.prefix : ""),
-          },
+          circuitArtifact: circuitArtifacts[i],
           pathToGeneratedFile: path.join(this.getOutputTypesDir(), circuitTypePath),
+          protocol: circuitArtifacts[i].baseCircuitInfo.protocol.length > 1 ? preparedNode.prefix : undefined,
         });
       }
     }
@@ -129,7 +129,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
 
     // index file path => its content
     const indexFilesMap: Map<string, string[]> = new Map();
-    const isCircuitNameExist: Map<string, boolean> = new Map();
+    const isCircuitNameExist: Map<string, number> = new Map();
 
     const topLevelCircuits: {
       [circuitName: string]: ArtifactWithPath[];
@@ -163,19 +163,25 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
         }
       }
 
-      if (!isCircuitNameExist.has(typePath.circuitArtifact.circuitTemplateName)) {
+      const circuitName = typePath.circuitArtifact.circuitTemplateName;
+
+      if (
+        isCircuitNameExist.get(circuitName) === undefined ||
+        isCircuitNameExist.get(circuitName)! < typePath.circuitArtifact.baseCircuitInfo.protocol.length
+      ) {
         indexFilesMap.set(pathToMainIndexFile, [
           ...(indexFilesMap.get(pathToMainIndexFile) === undefined ? [] : indexFilesMap.get(pathToMainIndexFile)!),
           this._getExportDeclarationForFile(path.relative(this._projectRoot, levels.join(path.sep))),
         ]);
       }
 
-      isCircuitNameExist.set(typePath.circuitArtifact.circuitTemplateName, true);
+      isCircuitNameExist.set(
+        circuitName,
+        isCircuitNameExist.get(circuitName) === undefined ? 1 : isCircuitNameExist.get(circuitName)! + 1,
+      );
 
-      topLevelCircuits[typePath.circuitArtifact.circuitTemplateName] =
-        topLevelCircuits[typePath.circuitArtifact.circuitTemplateName] === undefined
-          ? [typePath]
-          : [...topLevelCircuits[typePath.circuitArtifact.circuitTemplateName], typePath];
+      topLevelCircuits[circuitName] =
+        topLevelCircuits[circuitName] === undefined ? [typePath] : [...topLevelCircuits[circuitName], typePath];
     }
 
     for (const [absolutePath, content] of indexFilesMap) {
