@@ -15,10 +15,12 @@ import {
   DefaultWrapperTemplateParams,
   WrapperTemplateParams,
   SignalInfo,
+  GeneratedCircuitWrapperResult,
 } from "../types";
 
 import { normalizeName } from "../utils";
 import { SignalTypeNames, SignalVisibilityNames } from "../constants";
+import { Groth16CalldataPointsType, PlonkCalldataPointsType } from "../constants/protocol";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genHardhatZkitTypeExtension(circuits: {
@@ -37,6 +39,23 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         circuitClasses.push({
           name: this._getCircuitName(artifacts[0].circuitArtifact),
           object: this._getCircuitName(artifacts[0].circuitArtifact),
+          protocol: artifacts[0].protocol,
+        });
+
+        continue;
+      }
+
+      if (artifacts.length === 2 && artifacts[0].protocol !== artifacts[1].protocol) {
+        circuitClasses.push({
+          name: this._getCircuitName(artifacts[0].circuitArtifact),
+          object: this._getCircuitName(artifacts[0].circuitArtifact) + this._getPrefix(artifacts[0].protocol!),
+          protocol: artifacts[0].protocol,
+        });
+
+        circuitClasses.push({
+          name: this._getCircuitName(artifacts[1].circuitArtifact),
+          object: this._getCircuitName(artifacts[1].circuitArtifact) + this._getPrefix(artifacts[1].protocol!),
+          protocol: artifacts[1].protocol,
         });
 
         continue;
@@ -46,6 +65,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         circuitClasses.push({
           name: this._getFullCircuitName(artifact.circuitArtifact),
           object: this._getObjectPath(artifact.pathToGeneratedFile),
+          protocol: artifact.protocol,
         });
       }
     }
@@ -66,10 +86,45 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       .join(".");
   }
 
-  protected async _genCircuitWrapperClassContent(
+  protected async _genCircuitWrappersClassContent(
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
-  ): Promise<string> {
+  ): Promise<GeneratedCircuitWrapperResult[]> {
+    this._validateCircuitArtifact(circuitArtifact);
+
+    const result: GeneratedCircuitWrapperResult[] = [];
+
+    const unifiedProtocolType = new Set(circuitArtifact.baseCircuitInfo.protocol);
+    for (const protocolType of unifiedProtocolType) {
+      const content = await this._genSingleCircuitWrapperClassContent(
+        circuitArtifact,
+        pathToGeneratedFile,
+        protocolType,
+        unifiedProtocolType.size > 1,
+      );
+
+      result.push(content);
+    }
+
+    return result;
+  }
+
+  protected async _genDefaultCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {
+    const template = fs.readFileSync(path.join(__dirname, "templates", "default-circuit-wrapper.ts.ejs"), "utf8");
+
+    const templateParams: DefaultWrapperTemplateParams = {
+      circuitClassName: this._getCircuitName(circuitArtifact),
+    };
+
+    return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
+  }
+
+  private async _genSingleCircuitWrapperClassContent(
+    circuitArtifact: CircuitArtifact,
+    pathToGeneratedFile: string,
+    protocolType: "groth16" | "plonk",
+    isPrefixed: boolean = false,
+  ): Promise<GeneratedCircuitWrapperResult> {
     const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
     let outputCounter: number = 0;
@@ -113,28 +168,28 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
 
     const pathToUtils = path.join(this.getOutputTypesDir(), "utils");
+    const circuitClassName = this._getCircuitName(circuitArtifact) + (isPrefixed ? this._getPrefix(protocolType) : "");
+
     const templateParams: WrapperTemplateParams = {
-      circuitClassName: this._getCircuitName(circuitArtifact),
+      protocolTypeName: protocolType,
+      protocolImplementerName: this._getProtocolImplementerName(protocolType),
+      proofTypeInternalName: this._getProofTypeInternalName(protocolType),
+      circuitClassName,
       publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),
       calldataPubSignalsType: this._getCalldataPubSignalsType(calldataPubSignalsCount),
       publicInputs,
       privateInputs,
+      calldataPointsType: this._getCalldataPointsType(protocolType),
       proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
       privateInputsTypeName: this._getTypeName(circuitArtifact, "Private"),
       pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
     };
 
-    return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
-  }
-
-  protected async _genDefaultCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {
-    const template = fs.readFileSync(path.join(__dirname, "templates", "default-circuit-wrapper.ts.ejs"), "utf8");
-
-    const templateParams: DefaultWrapperTemplateParams = {
-      circuitClassName: this._getCircuitName(circuitArtifact),
+    return {
+      content: await prettier.format(ejs.render(template, templateParams), { parser: "typescript" }),
+      className: circuitClassName,
+      prefix: this._getPrefix(protocolType).toLowerCase(),
     };
-
-    return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
   }
 
   private _getCalldataPubSignalsType(pubSignalsCount: number): string {
@@ -149,5 +204,55 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
 
     return signal.dimension.reduce((acc: number, dim: string) => acc * Number(dim), 1);
+  }
+
+  private _getProtocolImplementerName(protocolType: string): any {
+    switch (protocolType) {
+      case "groth16":
+        return "Groth16Implementer";
+      case "plonk":
+        return "PlonkImplementer";
+      default:
+        throw new Error(`Unknown protocol: ${protocolType}`);
+    }
+  }
+
+  private _getProofTypeInternalName(protocolType: string): any {
+    switch (protocolType) {
+      case "groth16":
+        return "Groth16Proof";
+      case "plonk":
+        return "PlonkProof";
+      default:
+        throw new Error(`Unknown protocol: ${protocolType}`);
+    }
+  }
+
+  private _getCalldataPointsType(protocolType: string): any {
+    switch (protocolType) {
+      case "groth16":
+        return Groth16CalldataPointsType;
+      case "plonk":
+        return PlonkCalldataPointsType;
+      default:
+        throw new Error(`Unknown protocol: ${protocolType}`);
+    }
+  }
+
+  protected _getPrefix(protocolType: string): string {
+    switch (protocolType) {
+      case "groth16":
+        return "Groth16";
+      case "plonk":
+        return "Plonk";
+      default:
+        throw new Error(`Unknown protocol: ${protocolType}`);
+    }
+  }
+
+  private _validateCircuitArtifact(circuitArtifact: CircuitArtifact): void {
+    if (!circuitArtifact.baseCircuitInfo.protocol) {
+      throw new Error(`ZKType: Protocol is missing in the circuit artifact: ${circuitArtifact.circuitTemplateName}`);
+    }
   }
 }
