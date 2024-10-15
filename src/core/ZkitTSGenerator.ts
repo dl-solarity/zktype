@@ -7,15 +7,14 @@ import prettier from "prettier";
 import BaseTSGenerator from "./BaseTSGenerator";
 
 import {
-  ArtifactWithPath,
   CircuitArtifact,
   CircuitClass,
   Inputs,
   TypeExtensionTemplateParams,
-  DefaultWrapperTemplateParams,
   WrapperTemplateParams,
   SignalInfo,
   GeneratedCircuitWrapperResult,
+  CircuitSet,
 } from "../types";
 
 import { normalizeName } from "../utils";
@@ -23,9 +22,7 @@ import { SignalTypeNames, SignalVisibilityNames } from "../constants";
 import { Groth16CalldataPointsType, PlonkCalldataPointsType } from "../constants/protocol";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
-  protected async _genHardhatZkitTypeExtension(circuits: {
-    [circuitName: string]: ArtifactWithPath[];
-  }): Promise<string> {
+  protected async _genHardhatZkitTypeExtension(circuits: CircuitSet): Promise<string> {
     const template = fs.readFileSync(path.join(__dirname, "templates", "type-extension.ts.ejs"), "utf8");
 
     const circuitClasses: CircuitClass[] = [];
@@ -109,16 +106,6 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     return result;
   }
 
-  protected async _genDefaultCircuitWrapperClassContent(circuitArtifact: CircuitArtifact): Promise<string> {
-    const template = fs.readFileSync(path.join(__dirname, "templates", "default-circuit-wrapper.ts.ejs"), "utf8");
-
-    const templateParams: DefaultWrapperTemplateParams = {
-      circuitClassName: this._getCircuitName(circuitArtifact),
-    };
-
-    return await prettier.format(ejs.render(template, templateParams), { parser: "typescript" });
-  }
-
   private async _genSingleCircuitWrapperClassContent(
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
@@ -175,20 +162,21 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       protocolImplementerName: this._getProtocolImplementerName(protocolType),
       proofTypeInternalName: this._getProofTypeInternalName(protocolType),
       circuitClassName,
-      publicInputsTypeName: this._getTypeName(circuitArtifact, "Public"),
+      publicInputsTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Public"),
       calldataPubSignalsType: this._getCalldataPubSignalsType(calldataPubSignalsCount),
       publicInputs,
       privateInputs,
       calldataPointsType: this._getCalldataPointsType(protocolType),
-      proofTypeName: this._getTypeName(circuitArtifact, "Proof"),
-      privateInputsTypeName: this._getTypeName(circuitArtifact, "Private"),
+      proofTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Proof"),
+      calldataTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Calldata"),
+      privateInputsTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Private"),
       pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
     };
 
     return {
       content: await prettier.format(ejs.render(template, templateParams), { parser: "typescript" }),
       className: circuitClassName,
-      prefix: this._getPrefix(protocolType).toLowerCase(),
+      protocol: protocolType,
     };
   }
 

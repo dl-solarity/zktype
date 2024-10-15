@@ -29,7 +29,7 @@ export type <%= proofTypeName %> = {
   publicSignals: <%= publicInputsTypeName %>;
 }
 
-export type Calldata = [
+export type <%= calldataTypeName %> = [
     <%= calldataPointsType %>,
     <%= calldataPubSignalsType %>,
 ];
@@ -59,7 +59,7 @@ export class <%= circuitClassName %> extends CircuitZKit<"<%= protocolTypeName %
     });
   }
 
-  public async generateCalldata(proof: <%= proofTypeName %>): Promise<Calldata> {
+  public async generateCalldata(proof: <%= proofTypeName %>): Promise<<%= calldataTypeName %>> {
     return super.generateCalldata({
       proof: proof.proof,
       publicSignals: this._denormalizePublicSignals(proof.publicSignals),

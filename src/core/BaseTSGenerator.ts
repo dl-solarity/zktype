@@ -70,11 +70,12 @@ export default class BaseTSGenerator {
    * Extracts the type name from the circuit artifact.
    *
    * @param {CircuitArtifact} circuitArtifact - The circuit artifact from which the type name is extracted.
+   * @param protocolType - The protocol type to be added to the type name.
    * @param {string} [prefix=""] - The prefix to be added to the type name.
    * @returns {string} The extracted type name.
    */
-  protected _getTypeName(circuitArtifact: CircuitArtifact, prefix: string = ""): string {
-    return `${prefix}${circuitArtifact.circuitTemplateName.replace(path.extname(circuitArtifact.circuitTemplateName), "")}`;
+  protected _getTypeName(circuitArtifact: CircuitArtifact, protocolType: string, prefix: string = ""): string {
+    return `${prefix}${circuitArtifact.circuitTemplateName.replace(path.extname(circuitArtifact.circuitTemplateName), "")}${protocolType}`;
   }
 
   /**
