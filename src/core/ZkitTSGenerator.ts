@@ -15,6 +15,7 @@ import {
   SignalInfo,
   GeneratedCircuitWrapperResult,
   CircuitSet,
+  ProtocolType,
 } from "../types";
 
 import { normalizeName } from "../utils";
@@ -87,11 +88,9 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
   ): Promise<GeneratedCircuitWrapperResult[]> {
-    this._validateCircuitArtifact(circuitArtifact);
-
     const result: GeneratedCircuitWrapperResult[] = [];
 
-    const unifiedProtocolType = new Set(circuitArtifact.baseCircuitInfo.protocol);
+    const unifiedProtocolType = this._getUnifiedProtocolType(circuitArtifact);
     for (const protocolType of unifiedProtocolType) {
       const content = await this._genSingleCircuitWrapperClassContent(
         circuitArtifact,
@@ -238,9 +237,11 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
   }
 
-  private _validateCircuitArtifact(circuitArtifact: CircuitArtifact): void {
+  private _getUnifiedProtocolType(circuitArtifact: CircuitArtifact): Set<ProtocolType> {
     if (!circuitArtifact.baseCircuitInfo.protocol) {
-      throw new Error(`ZKType: Protocol is missing in the circuit artifact: ${circuitArtifact.circuitTemplateName}`);
+      return new Set(["groth16"]);
     }
+
+    return new Set(circuitArtifact.baseCircuitInfo.protocol);
   }
 }

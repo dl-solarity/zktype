@@ -1,5 +1,7 @@
 export type FormatTypes = "hh-zkit-artifacts-1";
 
+export type ProtocolType = "groth16" | "plonk";
+
 export type SignalType = "Output" | "Input" | "Intermediate";
 
 export type VisibilityType = "Public" | "Private";

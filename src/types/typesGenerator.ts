@@ -1,4 +1,4 @@
-import { CircuitArtifact } from "./circuitArtifact";
+import { CircuitArtifact, ProtocolType } from "./circuitArtifact";
 import { Groth16CalldataPointsType, PlonkCalldataPointsType } from "../constants/protocol";
 
 export interface CircuitSet {
@@ -18,7 +18,7 @@ export interface Inputs {
 }
 
 export interface WrapperTemplateParams {
-  protocolTypeName: "groth16" | "plonk";
+  protocolTypeName: ProtocolType;
   protocolImplementerName: "Groth16Implementer" | "PlonkImplementer";
   proofTypeInternalName: "Groth16Proof" | "PlonkProof";
   publicInputsTypeName: string;
