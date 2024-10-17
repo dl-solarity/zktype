@@ -7,7 +7,7 @@ import ZkitTSGenerator from "./ZkitTSGenerator";
 import { normalizeName } from "../utils";
 
 import { Formats } from "../constants";
-import { CircuitArtifact, ArtifactWithPath, GeneratedCircuitWrapperResult } from "../types";
+import { CircuitArtifact, GeneratedCircuitWrapperResult, CircuitSet } from "../types";
 
 /**
  * `CircuitTypesGenerator` is need for generating TypeScript bindings based on circuit artifacts.
@@ -65,7 +65,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     fs.mkdirSync(this.getOutputTypesDir(), { recursive: true });
 
     const isNameExist: Map<string, boolean> = new Map();
-    const typePathsToResolve: ArtifactWithPath[] = [];
+    const circuitSet: CircuitSet = {};
 
     for (let i = 0; i < circuitArtifacts.length; i++) {
       const circuitName = circuitArtifacts[i].circuitTemplateName;
@@ -102,15 +102,21 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
 
         this._saveFileContent(circuitTypePath, preparedNode.content);
 
-        typePathsToResolve.push({
+        if (!circuitSet[circuitName]) {
+          circuitSet[circuitName] = [];
+        }
+
+        circuitSet[circuitName].push({
           circuitArtifact: circuitArtifacts[i],
           pathToGeneratedFile: path.join(this.getOutputTypesDir(), circuitTypePath),
-          protocol: circuitArtifacts[i].baseCircuitInfo.protocol.length > 1 ? preparedNode.prefix : undefined,
+          protocol: preparedNode.protocol,
         });
       }
     }
 
-    await this._resolveTypePaths(typePathsToResolve);
+    await this._resolveTypePaths(circuitSet);
+    await this._saveMainIndexFile(circuitSet);
+    await this._saveHardhatZkitTypeExtensionFile(circuitSet);
 
     // copy utils to types output dir
     const utilsDirPath = this.getOutputTypesDir();
@@ -119,81 +125,87 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   }
 
   /**
-   * Generates the index files in the `TYPES_DIR` directory and its subdirectories.
-   *
-   * @param {ArtifactWithPath[]} typePaths - The paths to the generated files and the corresponding circuit artifacts.
+   * Generates the index files in the subdirectories of the `TYPES_DIR` directory.
    */
-  private async _resolveTypePaths(typePaths: ArtifactWithPath[]): Promise<void> {
+  private async _resolveTypePaths(circuitSet: CircuitSet): Promise<void> {
     const rootTypesDirPath = this.getOutputTypesDir();
-    const pathToMainIndexFile = path.join(rootTypesDirPath, "index.ts");
 
     // index file path => its content
-    const indexFilesMap: Map<string, string[]> = new Map();
-    const isCircuitNameExist: Map<string, number> = new Map();
+    const indexFilesMap: Map<string, Set<string>> = new Map();
 
-    const topLevelCircuits: {
-      [circuitName: string]: ArtifactWithPath[];
-    } = {};
+    for (const [, artifactWithPaths] of Object.entries(circuitSet)) {
+      for (const artifactWithPath of artifactWithPaths) {
+        const levels: string[] = artifactWithPath.pathToGeneratedFile
+          .replace(this.getOutputTypesDir(), "")
+          .split(path.sep)
+          .filter((level) => level !== "");
 
-    for (const typePath of typePaths) {
-      const levels: string[] = typePath.pathToGeneratedFile
-        .replace(this.getOutputTypesDir(), "")
-        .split(path.sep)
-        .filter((level) => level !== "");
+        for (let i = 1; i < levels.length; i++) {
+          const pathToIndexFile = path.join(rootTypesDirPath, levels.slice(0, i).join(path.sep), "index.ts");
 
-      for (let i = 0; i < levels.length; i++) {
-        const pathToIndexFile =
-          i === 0
-            ? path.join(rootTypesDirPath, "index.ts")
-            : path.join(rootTypesDirPath, levels.slice(0, i).join(path.sep), "index.ts");
+          if (!indexFilesMap.has(pathToIndexFile)) {
+            indexFilesMap.set(pathToIndexFile, new Set());
+          }
 
-        const exportDeclaration =
-          path.extname(levels[i]) === ".ts"
-            ? this._getExportDeclarationForFile(levels[i])
-            : this._getExportDeclarationForDirectory(levels[i]);
+          const exportDeclaration =
+            path.extname(levels[i]) === ".ts"
+              ? this._getExportDeclarationForFile(levels[i])
+              : this._getExportDeclarationForDirectory(levels[i]);
 
-        if (
-          indexFilesMap.get(pathToIndexFile) === undefined ||
-          !indexFilesMap.get(pathToIndexFile)?.includes(exportDeclaration)
-        ) {
-          indexFilesMap.set(pathToIndexFile, [
-            ...(indexFilesMap.get(pathToIndexFile) === undefined ? [] : indexFilesMap.get(pathToIndexFile)!),
-            exportDeclaration,
-          ]);
+          if (
+            indexFilesMap.get(pathToIndexFile) === undefined ||
+            !indexFilesMap.get(pathToIndexFile)!.has(exportDeclaration)
+          ) {
+            indexFilesMap.set(pathToIndexFile, indexFilesMap.get(pathToIndexFile)!.add(exportDeclaration));
+          }
         }
       }
-
-      const circuitName = typePath.circuitArtifact.circuitTemplateName;
-
-      if (
-        isCircuitNameExist.get(circuitName) === undefined ||
-        isCircuitNameExist.get(circuitName)! < typePath.circuitArtifact.baseCircuitInfo.protocol.length
-      ) {
-        indexFilesMap.set(pathToMainIndexFile, [
-          ...(indexFilesMap.get(pathToMainIndexFile) === undefined ? [] : indexFilesMap.get(pathToMainIndexFile)!),
-          this._getExportDeclarationForFile(path.relative(this._projectRoot, levels.join(path.sep))),
-        ]);
-      }
-
-      isCircuitNameExist.set(
-        circuitName,
-        isCircuitNameExist.get(circuitName) === undefined ? 1 : isCircuitNameExist.get(circuitName)! + 1,
-      );
-
-      topLevelCircuits[circuitName] =
-        topLevelCircuits[circuitName] === undefined ? [typePath] : [...topLevelCircuits[circuitName], typePath];
     }
 
     for (const [absolutePath, content] of indexFilesMap) {
-      this._saveFileContent(path.relative(this.getOutputTypesDir(), absolutePath), content.join("\n"));
+      this._saveFileContent(path.relative(this.getOutputTypesDir(), absolutePath), Array.from(content).join("\n"));
+    }
+  }
+
+  private async _saveMainIndexFile(circuitSet: CircuitSet): Promise<void> {
+    let mainIndexFileContent = this._getExportDeclarationForDirectory(CircuitTypesGenerator.DOMAIN_SEPARATOR) + "\n";
+
+    for (const [, artifactWithPaths] of Object.entries(circuitSet)) {
+      let isCircuitNameOverlaps = false;
+      const seenProtocols: string[] = [];
+
+      for (const artifactWithPath of artifactWithPaths) {
+        if (seenProtocols.includes(artifactWithPath.protocol)) {
+          isCircuitNameOverlaps = true;
+          break;
+        }
+
+        seenProtocols.push(artifactWithPath.protocol);
+      }
+
+      if (isCircuitNameOverlaps) {
+        continue;
+      }
+
+      for (const artifactWithPath of artifactWithPaths) {
+        const levels: string[] = artifactWithPath.pathToGeneratedFile
+          .replace(this.getOutputTypesDir(), "")
+          .split(path.sep)
+          .filter((level) => level !== "");
+
+        const exportPathToCircuitType = this._getExportDeclarationForFile(
+          path.relative(this._projectRoot, levels.join(path.sep)),
+        );
+
+        mainIndexFileContent += exportPathToCircuitType + "\n";
+      }
     }
 
-    const pathToTypesExtensionFile = path.join(rootTypesDirPath, "hardhat.d.ts");
+    this._saveFileContent("index.ts", mainIndexFileContent);
+  }
 
-    this._saveFileContent(
-      path.relative(this.getOutputTypesDir(), pathToTypesExtensionFile),
-      await this._genHardhatZkitTypeExtension(topLevelCircuits),
-    );
+  private async _saveHardhatZkitTypeExtensionFile(circuitSet: CircuitSet): Promise<void> {
+    this._saveFileContent("hardhat.d.ts", await this._genHardhatZkitTypeExtension(circuitSet));
   }
 
   /**

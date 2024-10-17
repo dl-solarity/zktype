@@ -1,10 +1,14 @@
-import { CircuitArtifact } from "./circuitArtifact";
+import { CircuitArtifact, ProtocolType } from "./circuitArtifact";
 import { Groth16CalldataPointsType, PlonkCalldataPointsType } from "../constants/protocol";
+
+export interface CircuitSet {
+  [circuitName: string]: ArtifactWithPath[];
+}
 
 export interface ArtifactWithPath {
   circuitArtifact: CircuitArtifact;
   pathToGeneratedFile: string;
-  protocol?: string;
+  protocol: string;
 }
 
 export interface Inputs {
@@ -13,12 +17,8 @@ export interface Inputs {
   dimensionsArray: string;
 }
 
-export interface DefaultWrapperTemplateParams {
-  circuitClassName: string;
-}
-
 export interface WrapperTemplateParams {
-  protocolTypeName: "groth16" | "plonk";
+  protocolTypeName: ProtocolType;
   protocolImplementerName: "Groth16Implementer" | "PlonkImplementer";
   proofTypeInternalName: "Groth16Proof" | "PlonkProof";
   publicInputsTypeName: string;
@@ -28,6 +28,7 @@ export interface WrapperTemplateParams {
   calldataPubSignalsType: string;
   proofTypeName: string;
   privateInputsTypeName: string;
+  calldataTypeName: string;
   circuitClassName: string;
   pathToUtils: string;
 }
@@ -45,5 +46,5 @@ export interface TypeExtensionTemplateParams {
 export interface GeneratedCircuitWrapperResult {
   content: string;
   className: string;
-  prefix: string;
+  protocol: string;
 }
