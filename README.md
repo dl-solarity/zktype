@@ -29,11 +29,13 @@ To create a `CircuitTypesGenerator` object, it is necessary to pass a config:
 
 ```typescript
 ZKTypeConfig = {
-  basePath: string;
-  projectRoot: string;
-  circuitsASTPaths: string[];
-  outputTypesDir?: string;
-};
+  basePath: "circuits",
+  projectRoot: process.cwd(),
+  circuitsArtifactsPaths: [
+    "circuits/auth/Matrix_artifacts.json",
+  ],
+  outputTypesDir: "generated-types/circuits",
+}
 ```
 
 This config contains all the information required to generate TypeScript bindings for given circuits.
