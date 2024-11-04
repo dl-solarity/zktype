@@ -29,18 +29,20 @@ To create a `CircuitTypesGenerator` object, it is necessary to pass a config:
 
 ```typescript
 ZKTypeConfig = {
-  basePath: string;
-  projectRoot: string;
-  circuitsASTPaths: string[];
-  outputTypesDir?: string;
-};
+  basePath: "circuits",
+  projectRoot: process.cwd(),
+  circuitsArtifactsPaths: [
+    "circuits/auth/Matrix_artifacts.json",
+  ],
+  outputTypesDir: "generated-types/circuits",
+}
 ```
 
 This config contains all the information required to generate TypeScript bindings for given circuits.
 
 - `basePath` - Path to the root directory of the project where circuits are stored.
 - `projectRoot` - Absolute path to the root directory of the project.
-- `circuitsArtifactsPaths` - Array of paths to the circuits' Artifact files.
+- `circuitsArtifactsPaths` - Array of paths to the circuits' artifact files.
 - `outputTypesDir` - Path to the directory where the generated types will be stored.
     - Optional. Default: `generated-types/circuits`.
 
@@ -53,17 +55,20 @@ const generator = new CircuitTypesGenerator(config);
 await generator.generateTypes();
 ```
 
-Also, this function generates the `hardhat.d.ts` file, where you can find all of the possible objects that can be retrieved by the function below.
+Also, this function generates the `hardhat.d.ts` file, where you can find all the possible objects that can be retrieved by the function below.
 
-#### getCircuitObject(circuitName: string): Promise<any>
+#### getCircuitObject(circuitName: string, protocolType?: string): Promise<any>
 
 Returns the constructible object for the given circuit.
 
 ```typescript
 const generator = new CircuitTypesGenerator(config);
 await generator.generateTypes();
-const circuitObject = await generator.getCircuitObject("MyCircuit");
+const circuitObject = await generator.getCircuitObject("MyCircuit", "groth16");
 ```
+
+The package supports generation of circuits by the `groth16` and `plonk` protocols at the same time. 
+In this case, you will have to specify the protocol type when retrieving the object.
 
 After the `circuitObject` is retrieved, check out the [zkit](https://github.com/dl-solarity/zkit) documentation to see how to work with it.
 
