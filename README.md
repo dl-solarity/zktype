@@ -6,6 +6,7 @@
 **ZKType simplifies and makes user-friendly the process of working with Circom circuits.**
 
 - Generate a [zkit](https://github.com/dl-solarity/zkit) wrapper for given circuits.
+- Support for `groth16` and `plonk` proving systems.
 - Ensure that all inputs and proofs are correctly formatted.
 
 ## Installation
@@ -31,8 +32,11 @@ To create a `CircuitTypesGenerator` object, it is necessary to pass a config:
 ZKTypeConfig = {
   basePath: "circuits",
   projectRoot: process.cwd(),
-  circuitsArtifactsPaths: [
-    "circuits/auth/Matrix_artifacts.json",
+  circuitsArtifacts: [
+    {
+      artifactPath: "circuits/auth/Matrix_artifacts.json",
+      circuitProtocolType: ["groth16"],
+    },
   ],
   outputTypesDir: "generated-types/circuits",
 }
@@ -42,28 +46,35 @@ This config contains all the information required to generate TypeScript binding
 
 - `basePath` - Path to the root directory of the project where circuits are stored.
 - `projectRoot` - Absolute path to the root directory of the project.
-- `circuitsArtifactsPaths` - Array of paths to the circuits' artifact files.
+- `circuitsArtifacts` - Array of object containing the path to the circuit artifact and the protocol type of the circuit.
 - `outputTypesDir` - Path to the directory where the generated types will be stored.
     - Optional. Default: `generated-types/circuits`.
 
-#### generateTypes()
+#### API reference
+
+---
+
+- **`async generateTypes()`**
 
 Generates TypeScript bindings for the given circuits, based on the provided config.
 
 ```typescript
 const generator = new CircuitTypesGenerator(config);
+
 await generator.generateTypes();
 ```
 
 Also, this function generates the `hardhat.d.ts` file, where you can find all the possible objects that can be retrieved by the function below.
 
-#### getCircuitObject(circuitName: string, protocolType?: string): Promise<any>
+- **`async getCircuitObject(circuitName: string, protocolType?: string): Promise<any>`**
 
 Returns the constructible object for the given circuit.
 
 ```typescript
 const generator = new CircuitTypesGenerator(config);
+
 await generator.generateTypes();
+
 const circuitObject = await generator.getCircuitObject("MyCircuit", "groth16");
 ```
 
