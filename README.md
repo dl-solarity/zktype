@@ -31,8 +31,11 @@ To create a `CircuitTypesGenerator` object, it is necessary to pass a config:
 ZKTypeConfig = {
   basePath: "circuits",
   projectRoot: process.cwd(),
-  circuitsArtifactsPaths: [
-    "circuits/auth/Matrix_artifacts.json",
+  circuitsArtifacts: [
+    {
+      artifactPath: "circuits/auth/Matrix_artifacts.json",
+      circuitProtocolType: ["groth16"],
+    },
   ],
   outputTypesDir: "generated-types/circuits",
 }
@@ -42,7 +45,7 @@ This config contains all the information required to generate TypeScript binding
 
 - `basePath` - Path to the root directory of the project where circuits are stored.
 - `projectRoot` - Absolute path to the root directory of the project.
-- `circuitsArtifactsPaths` - Array of paths to the circuits' artifact files.
+- `circuitsArtifacts` - Array of object containing the path to the circuit artifact and the protocol type of the circuit.
 - `outputTypesDir` - Path to the directory where the generated types will be stored.
     - Optional. Default: `generated-types/circuits`.
 
