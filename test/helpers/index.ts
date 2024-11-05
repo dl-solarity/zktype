@@ -4,7 +4,7 @@ import { findProjectRoot } from "../../src/utils";
 const circuitTypesGenerator = new CircuitTypesGenerator({
   basePath: "circuits/fixture",
   projectRoot: findProjectRoot(process.cwd()),
-  circuitsArtifactsPaths: [
+  circuitsArtifacts: [
     {
       artifactPath: "test/fixture-cache/auth/EnhancedMultiplier_artifacts.json",
       circuitProtocolType: ["groth16"],
@@ -32,4 +32,4 @@ const circuitTypesGenerator = new CircuitTypesGenerator({
   ],
 });
 
-circuitTypesGenerator.generateTypes().then(console.log).catch(console.error);
+// circuitTypesGenerator.generateTypes().then(console.log).catch(console.error);

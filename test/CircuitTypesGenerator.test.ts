@@ -25,7 +25,7 @@ describe("Circuit Types Generation", function () {
   const circuitTypesGenerator = new CircuitTypesGenerator({
     basePath: "circuits/fixture",
     projectRoot: findProjectRoot(process.cwd()),
-    circuitsArtifactsPaths: [
+    circuitsArtifacts: [
       {
         artifactPath: "test/fixture-cache/auth/EnhancedMultiplier_artifacts.json",
         circuitProtocolType: ["groth16"],

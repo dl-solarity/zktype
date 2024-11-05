@@ -3,6 +3,6 @@ import { ZKTypeConfig } from "./types";
 export const defaultCircuitArtifactGeneratorConfig: ZKTypeConfig = {
   basePath: "circuits",
   projectRoot: process.cwd(),
-  circuitsArtifactsPaths: [],
+  circuitsArtifacts: [],
   outputTypesDir: "generated-types/circuits",
 };

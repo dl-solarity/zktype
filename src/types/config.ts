@@ -19,7 +19,7 @@ export interface ZKTypeConfig {
   /**
    * An array of object containing the path to the circuit artifact and the protocol type of the circuit.
    */
-  circuitsArtifactsPaths: CircuitArtifactData[];
+  circuitsArtifacts: CircuitArtifactData[];
 
   /**
    * The absolute path to the root directory of the project.

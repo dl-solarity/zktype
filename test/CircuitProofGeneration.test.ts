@@ -9,7 +9,7 @@ describe("Circuit Proof Generation", function () {
   const circuitTypesGenerator = new CircuitTypesGenerator({
     basePath: "test/fixture",
     projectRoot: findProjectRoot(process.cwd()),
-    circuitsArtifactsPaths: [
+    circuitsArtifacts: [
       {
         artifactPath: "test/fixture-cache/auth/EnhancedMultiplier_artifacts.json",
         circuitProtocolType: ["groth16"],
