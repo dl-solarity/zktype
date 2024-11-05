@@ -5,7 +5,6 @@
   "circuitSourceName": "circuits/fixture/lib/BasicInLib.circom",
   "baseCircuitInfo": {
     "constraintsNumber": 1,
-    "protocol": ["groth16", "groth16", "plonk"],
     "signals": [
       {
         "name": "in1",

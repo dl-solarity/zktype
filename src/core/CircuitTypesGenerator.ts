@@ -303,13 +303,18 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     const artifacts: CircuitArtifact[] = [];
 
     for (const file of this._zktypeConfig.circuitsArtifactsPaths) {
-      const filePath = file.toString();
+      const filePath = file.artifactPath.toString();
 
       if (!path.extname(filePath) || !path.extname(filePath).includes(".json")) {
         continue;
       }
 
-      artifacts.push(JSON.parse(fs.readFileSync(path.join(this._projectRoot, filePath), "utf-8")));
+      const artifactStructure: CircuitArtifact = JSON.parse(
+        fs.readFileSync(path.join(this._projectRoot, filePath), "utf-8"),
+      );
+      artifactStructure.baseCircuitInfo.protocol = file.circuitProtocolType;
+
+      artifacts.push(artifactStructure);
     }
 
     return artifacts;

@@ -239,7 +239,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
 
   private _getUnifiedProtocolType(circuitArtifact: CircuitArtifact): Set<ProtocolType> {
     if (!circuitArtifact.baseCircuitInfo.protocol) {
-      return new Set(["groth16"]);
+      throw new Error(`INTERNAL ERROR. Open a bug report please!`);
     }
 
     return new Set(circuitArtifact.baseCircuitInfo.protocol);

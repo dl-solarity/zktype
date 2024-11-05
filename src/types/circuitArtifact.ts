@@ -28,11 +28,12 @@ export type CircuitArtifact = {
  * Represents the base circuit information.
  *
  * @param {string} protocol - The proving system protocol used in the circuit.
+ * Set by the package itself from provided constructor arguments.
  * @param {number} constraintsNumber - The number of constraints in the circuit.
  * @param {SignalInfo[]} signals - The array of `input` and `output` signals used in the circuit.
  */
 export type BaseCircuitInfo = {
-  protocol: ["groth16" | "plonk"];
+  protocol?: ProtocolType[];
   constraintsNumber: number;
   signals: SignalInfo[];
 };
