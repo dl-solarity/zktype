@@ -16,6 +16,7 @@ import {
   GeneratedCircuitWrapperResult,
   CircuitSet,
   ProtocolType,
+  ArtifactWithPath,
 } from "../types";
 
 import { normalizeName } from "../utils";
@@ -37,7 +38,6 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         circuitClasses.push({
           name: this._getCircuitName(artifacts[0].circuitArtifact),
           object: this._getCircuitName(artifacts[0].circuitArtifact),
-          protocol: artifacts[0].protocol,
         });
 
         continue;
@@ -59,11 +59,12 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         continue;
       }
 
+      const isProtocolTypeTheSame = this._isProtocolTypeTheSame(artifacts);
       for (const artifact of artifacts) {
         circuitClasses.push({
           name: this._getFullCircuitName(artifact.circuitArtifact),
           object: this._getObjectPath(artifact.pathToGeneratedFile),
-          protocol: artifact.protocol,
+          protocol: isProtocolTypeTheSame ? undefined : artifact.protocol,
         });
       }
     }
@@ -243,5 +244,9 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
 
     return new Set(circuitArtifact.baseCircuitInfo.protocol);
+  }
+
+  private _isProtocolTypeTheSame(artifactWithPaths: ArtifactWithPath[]) {
+    return artifactWithPaths.every((circuit) => circuit.protocol === artifactWithPaths[0].protocol);
   }
 }

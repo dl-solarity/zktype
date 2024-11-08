@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.4.2]
+
+* Fixed redundant protocol type generation in the `hardhat.config.ts`.
+
 ## [v0.3.1-v0.4.1]
 
 * Added an ability to provide protocol type in the ZKType config structure (#17)
