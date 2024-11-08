@@ -60,6 +60,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       }
 
       const isProtocolTypeTheSame = this._isProtocolTypeTheSame(artifacts);
+
       for (const artifact of artifacts) {
         circuitClasses.push({
           name: this._getFullCircuitName(artifact.circuitArtifact),
