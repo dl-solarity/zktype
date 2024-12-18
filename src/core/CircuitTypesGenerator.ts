@@ -118,10 +118,10 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     await this._saveMainIndexFile(circuitSet);
     await this._saveHardhatZkitTypeExtensionFile(circuitSet);
 
-    // copy utils to types output dir
+    // copy helpers to types output dir
     const utilsDirPath = this.getOutputTypesDir();
     fs.mkdirSync(utilsDirPath, { recursive: true });
-    fs.copyFileSync(path.join(__dirname, "templates", "utils.ts"), path.join(utilsDirPath, "utils.ts"));
+    fs.copyFileSync(path.join(__dirname, "templates", "helpers.ts"), path.join(utilsDirPath, "helpers.ts"));
   }
 
   /**
