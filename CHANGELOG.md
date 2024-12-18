@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.4.3]
+
+* Renamed `utils` file to `helpers` because of a path bug on Windows.
+
 ## [v0.4.2]
 
 * Fixed redundant protocol type generation in the `hardhat.config.ts`.
