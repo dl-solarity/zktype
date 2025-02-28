@@ -1,12 +1,16 @@
 # Changelog
 
+## [v0.4.4]
+
+* Changed the `Calldata` type in circuits from an array to a struct
+
 ## [v0.4.3]
 
-* Renamed `utils` file to `helpers` because of a path bug on Windows.
+* Renamed `utils` file to `helpers` because of a path bug on Windows
 
 ## [v0.4.2]
 
-* Fixed redundant protocol type generation in the `hardhat.config.ts`.
+* Fixed redundant protocol type generation in the `hardhat.config.ts`
 
 ## [v0.3.1-v0.4.1]
 

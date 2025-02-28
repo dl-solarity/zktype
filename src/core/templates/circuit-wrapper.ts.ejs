@@ -3,6 +3,7 @@ import {
   CircuitZKitConfig,
   Groth16Proof,
   PlonkProof,
+  Groth16ProofPoints,
   NumberLike,
   NumericString,
   PublicSignals,
@@ -29,10 +30,10 @@ export type <%= proofTypeName %> = {
   publicSignals: <%= publicInputsTypeName %>;
 }
 
-export type <%= calldataTypeName %> = [
-    <%= calldataPointsType %>,
-    <%= calldataPubSignalsType %>,
-];
+export type <%= calldataTypeName %> = {
+  proofPoints: <%= calldataProofPointsType %>,
+  publicSignals: <%= calldataPubSignalsType %>,
+};
 
 export class <%= circuitClassName %> extends CircuitZKit<"<%= protocolTypeName %>"> {
   constructor(config: CircuitZKitConfig) {

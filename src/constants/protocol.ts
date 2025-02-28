@@ -1,5 +1,27 @@
-export const Groth16CalldataPointsType =
-  "[NumericString, NumericString], [[NumericString, NumericString], [NumericString, NumericString]], [NumericString, NumericString]";
+export const Groth16CalldataProofPointsType = "Groth16ProofPoints";
 
-export const PlonkCalldataPointsType =
-  "[NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString, NumericString]";
+export const PlonkCalldataProofPointsType =
+  "[NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString, " +
+  "NumericString]";
