@@ -1,5 +1,5 @@
 import { CircuitArtifact, ProtocolType } from "./circuitArtifact";
-import { Groth16CalldataPointsType, PlonkCalldataPointsType } from "../constants/protocol";
+import { Groth16CalldataProofPointsType, PlonkCalldataProofPointsType } from "../constants/protocol";
 
 export interface CircuitSet {
   [circuitName: string]: ArtifactWithPath[];
@@ -24,7 +24,7 @@ export interface WrapperTemplateParams {
   publicInputsTypeName: string;
   privateInputs: Inputs[];
   publicInputs: Inputs[];
-  calldataPointsType: typeof Groth16CalldataPointsType | typeof PlonkCalldataPointsType;
+  calldataProofPointsType: typeof Groth16CalldataProofPointsType | typeof PlonkCalldataProofPointsType;
   calldataPubSignalsType: string;
   proofTypeName: string;
   privateInputsTypeName: string;
