@@ -21,7 +21,6 @@ import {
 
 import { normalizeName } from "../utils";
 import { SignalTypeNames, SignalVisibilityNames } from "../constants";
-import { Groth16CalldataProofPointsType, PlonkCalldataProofPointsType } from "../constants/protocol";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genHardhatZkitTypeExtension(circuits: CircuitSet): Promise<string> {
@@ -220,9 +219,9 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
   private _getCalldataProofPointsType(protocolType: string): any {
     switch (protocolType) {
       case "groth16":
-        return Groth16CalldataProofPointsType;
+        return "Groth16ProofPoints";
       case "plonk":
-        return PlonkCalldataProofPointsType;
+        return "PlonkProofPoints";
       default:
         throw new Error(`Unknown protocol: ${protocolType}`);
     }
