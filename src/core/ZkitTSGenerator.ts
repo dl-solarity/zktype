@@ -4,6 +4,8 @@ import path from "path";
 import ts from "typescript";
 import prettier from "prettier";
 
+import * as readline from "readline";
+
 import BaseTSGenerator from "./BaseTSGenerator";
 
 import {
@@ -20,7 +22,7 @@ import {
 } from "../types";
 
 import { normalizeName } from "../utils";
-import { SignalTypeNames, SignalVisibilityNames } from "../constants";
+import { SIGNAL_NAMES_TYPE_CAP, SignalTypeNames, SignalVisibilityNames } from "../constants";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genHardhatZkitTypeExtension(circuits: CircuitSet): Promise<string> {
@@ -88,6 +90,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genCircuitWrappersClassContent(
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
+    signalNamesTypeLimit?: number,
   ): Promise<GeneratedCircuitWrapperResult[]> {
     const result: GeneratedCircuitWrapperResult[] = [];
 
@@ -98,6 +101,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         pathToGeneratedFile,
         protocolType,
         unifiedProtocolType.size > 1,
+        signalNamesTypeLimit,
       );
 
       result.push(content);
@@ -111,6 +115,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     pathToGeneratedFile: string,
     protocolType: "groth16" | "plonk",
     isPrefixed: boolean = false,
+    signalNamesTypeLimit?: number,
   ): Promise<GeneratedCircuitWrapperResult> {
     const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
@@ -157,6 +162,16 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     const pathToUtils = path.join(this.getOutputTypesDir(), "helpers");
     const circuitClassName = this._getCircuitName(circuitArtifact) + (isPrefixed ? this._getPrefix(protocolType) : "");
 
+    let signalNames: string[] = [];
+
+    const symFilePath = circuitArtifact.compilerOutputFiles["sym"].fileSourcePath;
+
+    if (fs.existsSync(symFilePath)) {
+      signalNames = await this._extractSignalNames(symFilePath);
+    }
+
+    signalNamesTypeLimit = signalNamesTypeLimit ?? SIGNAL_NAMES_TYPE_CAP;
+
     const templateParams: WrapperTemplateParams = {
       protocolTypeName: protocolType,
       protocolImplementerName: this._getProtocolImplementerName(protocolType),
@@ -171,6 +186,8 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       calldataTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Calldata"),
       privateInputsTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Private"),
       pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
+      signalNames: signalNames,
+      signalNamesTypeLimit: Math.min(signalNamesTypeLimit, SIGNAL_NAMES_TYPE_CAP),
     };
 
     return {
@@ -244,6 +261,25 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
 
     return new Set(circuitArtifact.baseCircuitInfo.protocol);
+  }
+
+  private async _extractSignalNames(symFilePath: string): Promise<string[]> {
+    const signalNames: string[] = [];
+
+    const fileStream = fs.createReadStream(symFilePath, { encoding: "utf8" });
+    const signals = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+
+    for await (const signal of signals) {
+      const signalInfo = signal.split(",");
+
+      if (signalInfo.length != 4 || Number(signalInfo[1]) < 0) {
+        continue;
+      }
+
+      signalNames.push(signalInfo[3]);
+    }
+
+    return signalNames;
   }
 
   private _isProtocolTypeTheSame(artifactWithPaths: ArtifactWithPath[]) {

@@ -1,6 +1,6 @@
 {
   "name": "@solarity/zktype",
-  "version": "0.4.5",
+  "version": "0.4.6-rc.0",
   "description": "Unleash TypeScript bindings for Circom circuits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -49,7 +49,7 @@
     "typescript": "5.5.4"
   },
   "peerDependencies": {
-    "@solarity/zkit": "^0.3.6"
+    "@solarity/zkit": "^0.3.7-rc.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.12",
@@ -63,6 +63,7 @@
     "husky": "^9.0.11",
     "mocha": "^10.5.2",
     "nyc": "^17.0.0",
+    "readline": "^1.3.0",
     "snarkjs": "^0.7.4",
     "ts-node": "^10.9.2"
   }

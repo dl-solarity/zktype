@@ -25,4 +25,10 @@ export interface ZKTypeConfig {
    * The absolute path to the root directory of the project.
    */
   projectRoot: string;
+
+  /**
+   * The maximum number of signals allowed for generating the `SignalNames` for the circuit.
+   * If the number of signals exceeds this value, the type will be skipped.
+   */
+  signalNamesTypeLimit?: number;
 }

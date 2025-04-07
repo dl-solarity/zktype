@@ -38,7 +38,8 @@ ZKTypeConfig = {
       circuitProtocolType: ["groth16"],
     },
   ],
-  outputTypesDir: "generated-types/circuits",
+  outputTypesDir: "generated-types/circuits", 
+  signalNamesTypeLimit: 10000,
 }
 ```
 
@@ -49,6 +50,8 @@ This config contains all the information required to generate TypeScript binding
 - `circuitsArtifacts` - Array of object containing the path to the circuit artifact and the protocol type of the circuit.
 - `outputTypesDir` - Path to the directory where the generated types will be stored.
     - Optional. Default: `generated-types/circuits`.
+- `signalNamesTypeLimit` - Maximum number of signals allowed to generate a `SignalNames` union type for the circuit.
+    - Optional. Default: 50000.
 
 #### API reference
 

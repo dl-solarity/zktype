@@ -57,24 +57,8 @@
     ]
   },
   "compilerOutputFiles": {
-    "ast": {
-      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/Matrix.circom/Matrix_ast.json",
-      "fileHash": "7841fbef7c94377d9a169c38e308ad21"
-    },
-    "wasm": {
-      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/Matrix.circom/Matrix_js/Matrix.wasm",
-      "fileHash": "4e80b5df0828c467345022ea54edd984"
-    },
-    "c": {
-      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/Matrix.circom/Matrix_cpp/main.cpp",
-      "fileHash": "90ab764db6ce0dc1ed4a47304d86596b"
-    },
-    "r1cs": {
-      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/Matrix.circom/Matrix.r1cs",
-      "fileHash": "fd3f8ba20fb7f2823600ef8bbc71901b"
-    },
     "sym": {
-      "fileSourcePath": "/Users/oleh/Work/go/src/github/solarity/circom-lib/zkit/artifacts/circuits/fixture/auth/Matrix.circom/Matrix.sym",
+      "fileSourcePath": "test/fixture-cache/artifacts/Matrix.circom/Matrix.sym",
       "fileHash": "a9b474d80124b94223362871676196be"
     }
   }

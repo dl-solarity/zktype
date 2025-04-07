@@ -286,7 +286,11 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   ): Promise<GeneratedCircuitWrapperResult[]> {
     switch (circuitArtifact._format) {
       case Formats.V1HH_ZKIT_TYPE:
-        return await this._genCircuitWrappersClassContent(circuitArtifact, pathToGeneratedFile);
+        return await this._genCircuitWrappersClassContent(
+          circuitArtifact,
+          pathToGeneratedFile,
+          this._zktypeConfig.signalNamesTypeLimit,
+        );
       default:
         throw new Error(`Unsupported format: ${circuitArtifact._format}`);
     }
