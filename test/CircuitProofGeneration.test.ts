@@ -35,6 +35,7 @@ describe("Circuit Proof Generation", function () {
         circuitProtocolType: ["groth16", "plonk"],
       },
     ],
+    signalNamesTypeLimit: 20000,
   });
 
   const basicConfig: CircuitZKitConfig = {
@@ -58,11 +59,17 @@ describe("Circuit Proof Generation", function () {
 
     const circuit = new object(basicConfig);
 
-    const proof = await circuit.generateProof({ in1: 2, in2: 3 });
+    let proof = await circuit.generateProof({ in1: 2, in2: 3 });
     expect(await circuit.verifyProof(proof)).to.be.true;
 
     const calldata = await circuit.generateCalldata(proof);
     expect(calldata.publicSignals.length).to.equal(2);
+
+    proof = await circuit.generateProof({ in1: 2, in2: 3 }, { "main.in2": 4n });
+    expect(await circuit.verifyProof(proof)).to.be.false;
+
+    proof = await circuit.generateProof({ in1: 2, in2: 3 }, { "main.in2": 4n, "main.out": 8n });
+    expect(await circuit.verifyProof(proof)).to.be.true;
   });
 
   it("should generate and verify proof for Matrix.circom", async () => {

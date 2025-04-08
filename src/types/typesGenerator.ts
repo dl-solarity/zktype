@@ -30,6 +30,9 @@ export interface WrapperTemplateParams {
   calldataTypeName: string;
   circuitClassName: string;
   pathToUtils: string;
+  signalNames: string[];
+  signalNamesTypeLimit: number;
+  witnessOverridesTypeName: string;
 }
 
 export interface CircuitClass {
