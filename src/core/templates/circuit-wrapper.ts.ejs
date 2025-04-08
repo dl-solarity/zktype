@@ -36,17 +36,11 @@ export type <%= calldataTypeName %> = {
   publicSignals: <%= calldataPubSignalsType %>,
 };
 
-<%
-function useTypedSignals() {
-    return signalNames.length > 0 && signalNames.length < signalNamesTypeLimit;
-}
-%>
-
-<% if (useTypedSignals()) { -%>
-    export type SignalNames =
-    <% for (let i = 0; i < signalNames.length; i++) { -%>
-        "<%= signalNames[i] %>"<%= i === signalNames.length - 1 ? ";" : " |" %>
-    <% } -%>
+<% if (signalNames.length > 0 && signalNames.length < signalNamesTypeLimit) { -%>
+  export type QualifiedSignalNames =
+  <% for (let i = 0; i < signalNames.length; i++) { -%>
+    "<%= signalNames[i] %>"<%= i === signalNames.length - 1 ? ";" : " |" %>
+  <% } -%>
 <% } -%>
 
 export class <%= circuitClassName %> extends CircuitZKit<"<%= protocolTypeName %>"> {
@@ -56,8 +50,7 @@ export class <%= circuitClassName %> extends CircuitZKit<"<%= protocolTypeName %
 
   public async generateProof(
     inputs: <%= privateInputsTypeName %>,
-    witnessOverrides?<% if (useTypedSignals()) { %>: Partial<Record<SignalNames, bigint>>
-    <% } else { %>: Record<string, bigint><% } %>
+    witnessOverrides?: <%- witnessOverridesTypeName %>
   ): Promise<<%= proofTypeName %>> {
     const proof = await super.generateProof(inputs as any, witnessOverrides);
 
@@ -69,8 +62,7 @@ export class <%= circuitClassName %> extends CircuitZKit<"<%= protocolTypeName %
 
   public async calculateWitness(
     inputs: <%= privateInputsTypeName %>,
-    witnessOverrides?<% if (useTypedSignals()) { %>: Partial<Record<SignalNames, bigint>>
-    <% } else { %>: Record<string, bigint><% } %>
+    witnessOverrides?: <%- witnessOverridesTypeName %>
   ): Promise<bigint[]> {
     return super.calculateWitness(inputs as any, witnessOverrides);
   }

@@ -32,6 +32,7 @@ export interface WrapperTemplateParams {
   pathToUtils: string;
   signalNames: string[];
   signalNamesTypeLimit: number;
+  witnessOverridesTypeName: string;
 }
 
 export interface CircuitClass {

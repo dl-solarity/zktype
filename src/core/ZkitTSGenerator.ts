@@ -4,7 +4,7 @@ import path from "path";
 import ts from "typescript";
 import prettier from "prettier";
 
-import * as readline from "readline";
+import { iterateSymFile } from "@solarity/zkit";
 
 import BaseTSGenerator from "./BaseTSGenerator";
 
@@ -90,7 +90,6 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genCircuitWrappersClassContent(
     circuitArtifact: CircuitArtifact,
     pathToGeneratedFile: string,
-    signalNamesTypeLimit?: number,
   ): Promise<GeneratedCircuitWrapperResult[]> {
     const result: GeneratedCircuitWrapperResult[] = [];
 
@@ -101,7 +100,6 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
         pathToGeneratedFile,
         protocolType,
         unifiedProtocolType.size > 1,
-        signalNamesTypeLimit,
       );
 
       result.push(content);
@@ -115,7 +113,6 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     pathToGeneratedFile: string,
     protocolType: "groth16" | "plonk",
     isPrefixed: boolean = false,
-    signalNamesTypeLimit?: number,
   ): Promise<GeneratedCircuitWrapperResult> {
     const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
@@ -164,13 +161,16 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
 
     let signalNames: string[] = [];
 
-    const symFilePath = circuitArtifact.compilerOutputFiles["sym"].fileSourcePath;
+    const symFilePath = circuitArtifact.compilerOutputFiles["sym"]?.fileSourcePath;
 
-    if (fs.existsSync(symFilePath)) {
+    if (symFilePath && fs.existsSync(symFilePath)) {
       signalNames = await this._extractSignalNames(symFilePath);
     }
 
-    signalNamesTypeLimit = signalNamesTypeLimit ?? SIGNAL_NAMES_TYPE_CAP;
+    const signalNamesTypeLimit = Math.min(
+      this._zktypeConfig.signalNamesTypeLimit ?? SIGNAL_NAMES_TYPE_CAP,
+      SIGNAL_NAMES_TYPE_CAP,
+    );
 
     const templateParams: WrapperTemplateParams = {
       protocolTypeName: protocolType,
@@ -187,7 +187,8 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       privateInputsTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Private"),
       pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
       signalNames: signalNames,
-      signalNamesTypeLimit: Math.min(signalNamesTypeLimit, SIGNAL_NAMES_TYPE_CAP),
+      signalNamesTypeLimit: signalNamesTypeLimit,
+      witnessOverridesTypeName: this._getWitnessOverridesTypeName(signalNames.length, signalNamesTypeLimit),
     };
 
     return {
@@ -263,21 +264,20 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     return new Set(circuitArtifact.baseCircuitInfo.protocol);
   }
 
+  private _getWitnessOverridesTypeName(signalCount: number, signalNamesTypeLimit: number): string {
+    return signalCount > signalNamesTypeLimit
+      ? "Record<string, bigint>"
+      : "Partial<Record<QualifiedSignalNames, bigint>>";
+  }
+
   private async _extractSignalNames(symFilePath: string): Promise<string[]> {
     const signalNames: string[] = [];
 
-    const fileStream = fs.createReadStream(symFilePath, { encoding: "utf8" });
-    const signals = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
-
-    for await (const signal of signals) {
-      const signalInfo = signal.split(",");
-
-      if (signalInfo.length != 4 || Number(signalInfo[1]) < 0) {
-        continue;
+    await iterateSymFile(symFilePath, (signalInfo) => {
+      if (BigInt(signalInfo.witnessIndex) >= 0) {
+        signalNames.push(signalInfo.signalName);
       }
-
-      signalNames.push(signalInfo[3]);
-    }
+    });
 
     return signalNames;
   }

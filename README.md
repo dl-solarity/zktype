@@ -39,7 +39,7 @@ ZKTypeConfig = {
     },
   ],
   outputTypesDir: "generated-types/circuits", 
-  signalNamesTypeLimit: 10000,
+  signalNamesTypeLimit: 50000,
 }
 ```
 
