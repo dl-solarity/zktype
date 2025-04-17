@@ -4,6 +4,8 @@ import path from "path";
 import ts from "typescript";
 import prettier from "prettier";
 
+import { iterateSymFile } from "@solarity/zkit";
+
 import BaseTSGenerator from "./BaseTSGenerator";
 
 import {
@@ -20,7 +22,7 @@ import {
 } from "../types";
 
 import { normalizeName } from "../utils";
-import { SignalTypeNames, SignalVisibilityNames } from "../constants";
+import { DEFAULT_SIGNAL_NAMES_TYPE_LIMIT, SignalTypeNames, SignalVisibilityNames } from "../constants";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genHardhatZkitTypeExtension(circuits: CircuitSet): Promise<string> {
@@ -157,6 +159,16 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     const pathToUtils = path.join(this.getOutputTypesDir(), "helpers");
     const circuitClassName = this._getCircuitName(circuitArtifact) + (isPrefixed ? this._getPrefix(protocolType) : "");
 
+    let signalNames: string[] = [];
+
+    const symFilePath = circuitArtifact.compilerOutputFiles["sym"]?.fileSourcePath;
+
+    if (symFilePath && fs.existsSync(symFilePath)) {
+      signalNames = await this._extractSignalNames(symFilePath);
+    }
+
+    const signalNamesTypeLimit = this._zktypeConfig.signalNamesTypeLimit ?? DEFAULT_SIGNAL_NAMES_TYPE_LIMIT;
+
     const templateParams: WrapperTemplateParams = {
       protocolTypeName: protocolType,
       protocolImplementerName: this._getProtocolImplementerName(protocolType),
@@ -171,6 +183,9 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       calldataTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Calldata"),
       privateInputsTypeName: this._getTypeName(circuitArtifact, this._getPrefix(protocolType), "Private"),
       pathToUtils: path.relative(path.dirname(pathToGeneratedFile), pathToUtils),
+      signalNames: signalNames,
+      signalNamesTypeLimit: signalNamesTypeLimit,
+      witnessOverridesTypeName: this._getWitnessOverridesTypeName(signalNames.length, signalNamesTypeLimit),
     };
 
     return {
@@ -244,6 +259,24 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     }
 
     return new Set(circuitArtifact.baseCircuitInfo.protocol);
+  }
+
+  private _getWitnessOverridesTypeName(signalCount: number, signalNamesTypeLimit: number): string {
+    return signalCount > signalNamesTypeLimit
+      ? "Record<string, bigint>"
+      : "Partial<Record<QualifiedSignalNames, bigint>>";
+  }
+
+  private async _extractSignalNames(symFilePath: string): Promise<string[]> {
+    const signalNames: string[] = [];
+
+    await iterateSymFile(symFilePath, (signalInfo) => {
+      if (BigInt(signalInfo.witnessIndex) >= 0) {
+        signalNames.push(signalInfo.signalName);
+      }
+    });
+
+    return signalNames;
   }
 
   private _isProtocolTypeTheSame(artifactWithPaths: ArtifactWithPath[]) {

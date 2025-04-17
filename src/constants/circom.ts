@@ -17,3 +17,5 @@ export enum InternalType {
 export enum Formats {
   V1HH_ZKIT_TYPE = "hh-zkit-artifacts-1",
 }
+
+export const DEFAULT_SIGNAL_NAMES_TYPE_LIMIT = 50000;

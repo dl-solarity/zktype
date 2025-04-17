@@ -5,9 +5,10 @@
 
 **ZKType simplifies and makes user-friendly the process of working with Circom circuits.**
 
-- Generate a [zkit](https://github.com/dl-solarity/zkit) wrapper for given circuits.
+- Generate a typed [zkit](https://github.com/dl-solarity/zkit) wrapper for given circuits.
 - Support for `groth16` and `plonk` proving systems.
 - Ensure that all inputs and proofs are correctly formatted.
+- Typization for witness signals substitution.
 
 ## Installation
 
@@ -38,7 +39,8 @@ ZKTypeConfig = {
       circuitProtocolType: ["groth16"],
     },
   ],
-  outputTypesDir: "generated-types/circuits",
+  outputTypesDir: "generated-types/circuits", 
+  signalNamesTypeLimit: 50000,
 }
 ```
 
@@ -49,6 +51,8 @@ This config contains all the information required to generate TypeScript binding
 - `circuitsArtifacts` - Array of object containing the path to the circuit artifact and the protocol type of the circuit.
 - `outputTypesDir` - Path to the directory where the generated types will be stored.
     - Optional. Default: `generated-types/circuits`.
+- `signalNamesTypeLimit` - Maximum number of signals allowed to generate a `SignalNames` union type for the circuit.
+    - Optional. Default: 50000.
 
 #### API reference
 
