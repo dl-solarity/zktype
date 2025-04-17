@@ -5,9 +5,10 @@
 
 **ZKType simplifies and makes user-friendly the process of working with Circom circuits.**
 
-- Generate a [zkit](https://github.com/dl-solarity/zkit) wrapper for given circuits.
+- Generate a typed [zkit](https://github.com/dl-solarity/zkit) wrapper for given circuits.
 - Support for `groth16` and `plonk` proving systems.
 - Ensure that all inputs and proofs are correctly formatted.
+- Typization for witness signals substitution.
 
 ## Installation
 

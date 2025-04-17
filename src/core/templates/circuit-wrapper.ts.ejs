@@ -36,7 +36,7 @@ export type <%= calldataTypeName %> = {
   publicSignals: <%= calldataPubSignalsType %>,
 };
 
-<% if (signalNames.length > 0 && signalNames.length < signalNamesTypeLimit) { -%>
+<% if (signalNames.length > 0 && signalNames.length <= signalNamesTypeLimit) { -%>
   export type QualifiedSignalNames =
   <% for (let i = 0; i < signalNames.length; i++) { -%>
     "<%= signalNames[i] %>"<%= i === signalNames.length - 1 ? ";" : " |" %>

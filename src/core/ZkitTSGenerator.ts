@@ -22,7 +22,7 @@ import {
 } from "../types";
 
 import { normalizeName } from "../utils";
-import { SIGNAL_NAMES_TYPE_CAP, SignalTypeNames, SignalVisibilityNames } from "../constants";
+import { DEFAULT_SIGNAL_NAMES_TYPE_LIMIT, SignalTypeNames, SignalVisibilityNames } from "../constants";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genHardhatZkitTypeExtension(circuits: CircuitSet): Promise<string> {
@@ -167,10 +167,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       signalNames = await this._extractSignalNames(symFilePath);
     }
 
-    const signalNamesTypeLimit = Math.min(
-      this._zktypeConfig.signalNamesTypeLimit ?? SIGNAL_NAMES_TYPE_CAP,
-      SIGNAL_NAMES_TYPE_CAP,
-    );
+    const signalNamesTypeLimit = this._zktypeConfig.signalNamesTypeLimit ?? DEFAULT_SIGNAL_NAMES_TYPE_LIMIT;
 
     const templateParams: WrapperTemplateParams = {
       protocolTypeName: protocolType,

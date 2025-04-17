@@ -18,4 +18,4 @@ export enum Formats {
   V1HH_ZKIT_TYPE = "hh-zkit-artifacts-1",
 }
 
-export const SIGNAL_NAMES_TYPE_CAP = 50000;
+export const DEFAULT_SIGNAL_NAMES_TYPE_LIMIT = 50000;

@@ -5,4 +5,5 @@ export const defaultCircuitArtifactGeneratorConfig: ZKTypeConfig = {
   projectRoot: process.cwd(),
   circuitsArtifacts: [],
   outputTypesDir: "generated-types/circuits",
+  signalNamesTypeLimit: 50000,
 };
