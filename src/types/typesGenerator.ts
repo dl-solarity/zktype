@@ -1,4 +1,4 @@
-import { CircuitArtifact, ProtocolType } from "./circuitArtifact";
+import { CircuitArtifact, ProtocolType } from "./circuitArtifact.js";
 
 export interface CircuitSet {
   [circuitName: string]: ArtifactWithPath[];

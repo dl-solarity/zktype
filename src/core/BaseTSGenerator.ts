@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import ts from "typescript";
 
-import { CircuitArtifact, ZKTypeConfig } from "../types";
+import { CircuitArtifact, ZKTypeConfig } from "../types/index.js";
 
 /**
  * `BaseTSGenerator` is a base class for all TypeScript generators.

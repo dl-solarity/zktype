@@ -1,3 +1,3 @@
-export * from "./config";
-export * from "./typesGenerator";
-export * from "./circuitArtifact";
+export * from "./config.js";
+export * from "./typesGenerator.js";
+export * from "./circuitArtifact.js";

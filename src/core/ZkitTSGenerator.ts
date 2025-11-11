@@ -3,10 +3,11 @@ import ejs from "ejs";
 import path from "path";
 import ts from "typescript";
 import prettier from "prettier";
+import { fileURLToPath } from "url";
 
 import { iterateSymFile } from "@solarity/zkit";
 
-import BaseTSGenerator from "./BaseTSGenerator";
+import BaseTSGenerator from "./BaseTSGenerator.js";
 
 import {
   CircuitArtifact,
@@ -19,14 +20,14 @@ import {
   CircuitSet,
   ProtocolType,
   ArtifactWithPath,
-} from "../types";
+} from "../types/index.js";
 
-import { normalizeName } from "../utils";
-import { DEFAULT_SIGNAL_NAMES_TYPE_LIMIT, SignalTypeNames, SignalVisibilityNames } from "../constants";
+import { normalizeName } from "../utils.js";
+import { DEFAULT_SIGNAL_NAMES_TYPE_LIMIT, SignalTypeNames, SignalVisibilityNames } from "../constants/index.js";
 
 export default class ZkitTSGenerator extends BaseTSGenerator {
   protected async _genHardhatZkitTypeExtension(circuits: CircuitSet): Promise<string> {
-    const template = fs.readFileSync(path.join(__dirname, "templates", "type-extension.ts.ejs"), "utf8");
+    const template = fs.readFileSync(path.join(dirname(), "templates", "type-extension.ts.ejs"), "utf8");
 
     const circuitClasses: CircuitClass[] = [];
 
@@ -114,7 +115,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
     protocolType: "groth16" | "plonk",
     isPrefixed: boolean = false,
   ): Promise<GeneratedCircuitWrapperResult> {
-    const template = fs.readFileSync(path.join(__dirname, "templates", "circuit-wrapper.ts.ejs"), "utf8");
+    const template = fs.readFileSync(path.join(dirname(), "templates", "circuit-wrapper.ts.ejs"), "utf8");
 
     let outputCounter: number = 0;
     const publicInputs: Inputs[] = [];
@@ -156,7 +157,7 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
       calldataPubSignalsCount += this._getPublicSignalsCount(signal);
     }
 
-    const pathToUtils = path.join(this.getOutputTypesDir(), "helpers");
+    const pathToUtils = path.join(this.getOutputTypesDir(), "helpers.js");
     const circuitClassName = this._getCircuitName(circuitArtifact) + (isPrefixed ? this._getPrefix(protocolType) : "");
 
     let signalNames: string[] = [];
@@ -282,4 +283,27 @@ export default class ZkitTSGenerator extends BaseTSGenerator {
   private _isProtocolTypeTheSame(artifactWithPaths: ArtifactWithPath[]) {
     return artifactWithPaths.every((circuit) => circuit.protocol === artifactWithPaths[0].protocol);
   }
+}
+
+// esm + cjs modules compatibility
+function dirname(): string {
+  const isCommonJS =
+    typeof module !== "undefined" && typeof module.exports !== "undefined" && typeof __dirname !== "undefined";
+
+  let dirname;
+
+  if (!isCommonJS) {
+    // @ts-ignore
+    const url = (import.meta as any).url;
+    const __filename = fileURLToPath(url);
+    dirname = path.dirname(__filename);
+  } else {
+    dirname = __dirname;
+  }
+
+  if (dirname.includes("/dist/")) {
+    dirname = dirname.replace(/dist\/(?:esm|cjs)/g, "src");
+  }
+
+  return dirname;
 }

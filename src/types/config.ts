@@ -1,4 +1,4 @@
-import { ProtocolType } from "./circuitArtifact";
+import { ProtocolType } from "./circuitArtifact.js";
 
 export interface CircuitArtifactData {
   artifactPath: string;

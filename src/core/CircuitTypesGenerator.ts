@@ -1,13 +1,14 @@
 import fs from "fs";
 import path from "path";
 import ts from "typescript";
+import { fileURLToPath } from "url";
 
-import ZkitTSGenerator from "./ZkitTSGenerator";
+import ZkitTSGenerator from "./ZkitTSGenerator.js";
 
-import { normalizeName } from "../utils";
+import { normalizeName } from "../utils.js";
 
-import { Formats } from "../constants";
-import { CircuitArtifact, GeneratedCircuitWrapperResult, CircuitSet } from "../types";
+import { Formats } from "../constants/index.js";
+import { CircuitArtifact, GeneratedCircuitWrapperResult, CircuitSet } from "../types/index.js";
 
 /**
  * `CircuitTypesGenerator` is need for generating TypeScript bindings based on circuit artifacts.
@@ -24,7 +25,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
   public async getCircuitObject(circuitName: string, protocol?: string): Promise<any> {
     const pathToGeneratedTypes = this.getOutputTypesDir();
 
-    const module = await import(pathToGeneratedTypes);
+    const module = await import(path.join(pathToGeneratedTypes, "index.ts"));
 
     if (protocol) {
       circuitName += this._getPrefix(protocol.toLowerCase());
@@ -121,7 +122,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
     // copy helpers to types output dir
     const utilsDirPath = this.getOutputTypesDir();
     fs.mkdirSync(utilsDirPath, { recursive: true });
-    fs.copyFileSync(path.join(__dirname, "templates", "helpers.ts"), path.join(utilsDirPath, "helpers.ts"));
+    fs.copyFileSync(path.join(dirname(), "templates", "helpers.ts"), path.join(utilsDirPath, "helpers.ts"));
   }
 
   /**
@@ -228,7 +229,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
         undefined,
         ts.factory.createNamespaceImport(ts.factory.createIdentifier(normalizeName(directory))),
       ),
-      ts.factory.createStringLiteral(`./${directory}`),
+      ts.factory.createStringLiteral(`./${directory}/index.js`),
     );
     const exportDeclaration = ts.factory.createExportDeclaration(
       undefined,
@@ -257,7 +258,7 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
       undefined,
       false,
       undefined,
-      ts.factory.createStringLiteral(`./${file.replace(path.extname(file), "")}`),
+      ts.factory.createStringLiteral(`./${file.replace(path.extname(file), ".js")}`),
     );
 
     return this._getNodeContent(exportDeclaration);
@@ -319,4 +320,26 @@ export class CircuitTypesGenerator extends ZkitTSGenerator {
 
     return artifacts;
   }
+}
+
+function dirname(): string {
+  const isCommonJS =
+    typeof module !== "undefined" && typeof module.exports !== "undefined" && typeof __dirname !== "undefined";
+
+  let dirname;
+
+  if (!isCommonJS) {
+    // @ts-ignore
+    const url = (import.meta as any).url;
+    const __filename = fileURLToPath(url);
+    dirname = path.dirname(__filename);
+  } else {
+    dirname = __dirname;
+  }
+
+  if (dirname.includes("/dist/")) {
+    dirname = dirname.replace(/dist\/(?:esm|cjs)/g, "src");
+  }
+
+  return dirname;
 }

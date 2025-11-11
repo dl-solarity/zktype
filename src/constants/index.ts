@@ -1,1 +1,1 @@
-export * from "./circom";
+export * from "./circom.js";

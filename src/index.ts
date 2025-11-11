@@ -1,4 +1,4 @@
-export * from "./types";
-export * from "./constants";
+export * from "./types/index.js";
+export * from "./constants/index.js";
 
-export * from "./core/CircuitTypesGenerator";
+export * from "./core/CircuitTypesGenerator.js";

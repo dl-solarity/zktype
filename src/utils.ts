@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 export function findProjectRoot(currentDir: string): string {
   if (fs.existsSync(path.join(currentDir, "package.json"))) {
@@ -16,7 +17,7 @@ export function findProjectRoot(currentDir: string): string {
 }
 
 export function getPackageVersion(): string {
-  const packageJsonPath = path.join(findProjectRoot(__dirname), "package.json");
+  const packageJsonPath = path.join(findProjectRoot(dirname()), "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
   return packageJson.version;
@@ -42,4 +43,26 @@ export function normalizeName(rawName: string): string {
   }
 
   return finalName;
+}
+
+function dirname(): string {
+  const isCommonJS =
+    typeof module !== "undefined" && typeof module.exports !== "undefined" && typeof __dirname !== "undefined";
+
+  let dirname;
+
+  if (!isCommonJS) {
+    // @ts-ignore
+    const url = (import.meta as any).url;
+    const __filename = fileURLToPath(url);
+    dirname = path.dirname(__filename);
+  } else {
+    dirname = __dirname;
+  }
+
+  if (dirname.includes("/dist/")) {
+    dirname = dirname.replace(/dist\/(?:esm|cjs)/g, "src");
+  }
+
+  return dirname;
 }

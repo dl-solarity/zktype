@@ -1,4 +1,4 @@
-import { ZKTypeConfig } from "./types";
+import { ZKTypeConfig } from "./types/index.js";
 
 export const defaultCircuitArtifactGeneratorConfig: ZKTypeConfig = {
   basePath: "circuits",
